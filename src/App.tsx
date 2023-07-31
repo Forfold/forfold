@@ -8,6 +8,7 @@ import IconButton from '@mui/material/IconButton'
 import MenuIcon from '@mui/icons-material/Menu'
 import SearchIcon from '@mui/icons-material/Search'
 import MoreIcon from '@mui/icons-material/MoreVert'
+import { Outlet } from 'react-router'
 
 const darkTheme = createTheme({
     palette: {
@@ -22,6 +23,7 @@ export default function BottomAppBar() {
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             {/* Content Here */}
+            <Outlet />
             <AppBar position="fixed" color="primary">
                 <Toolbar>
                     <IconButton color="inherit" aria-label="open drawer">

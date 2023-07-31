@@ -6,19 +6,24 @@ import {
     RouterProvider,
 } from 'react-router-dom'
 import ErrorPage from './ErrorPage'
-import './index.css'
+import About from './About'
 
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
 import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 
-
 const router = createBrowserRouter([
     {
         path: '/forfold/',
         element: <App />,
         errorElement: <ErrorPage />,
+        children: [
+            {
+                path: '/forfold/about/',
+                element: <About />,
+            },
+        ],
     },
 ])
   
