@@ -15,17 +15,19 @@ import '@fontsource/roboto/700.css'
 
 const router = createBrowserRouter([
     {
-        path: '/forfold/',
+        path: '/',
         element: <App />,
         errorElement: <ErrorPage />,
         children: [
             {
-                path: '/forfold/about/',
+                path: '/about/',
                 element: <About />,
             },
         ],
     },
-])
+], {
+    basename: '/forfold/'
+})
   
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
