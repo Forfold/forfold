@@ -22,8 +22,6 @@ export default function BottomAppBar() {
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
-            {/* Content Here */}
-            <Outlet />
             <AppBar position="fixed" color="primary">
                 <Toolbar>
                     <IconButton color="inherit" aria-label="open drawer">
@@ -38,6 +36,8 @@ export default function BottomAppBar() {
                     </IconButton>
                 </Toolbar>
             </AppBar>
+            {/* Content Here */}
+            <Outlet />
         </ThemeProvider>
     )
 }
