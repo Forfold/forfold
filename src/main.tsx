@@ -26,7 +26,7 @@ const router = createBrowserRouter([
         ],
     },
 ], {
-    basename: '/forfold/'
+    basename: '/forfold'
 })
   
 
