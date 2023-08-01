@@ -5,10 +5,9 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
-import MenuIcon from '@mui/icons-material/Menu'
-import SearchIcon from '@mui/icons-material/Search'
 import MoreIcon from '@mui/icons-material/MoreVert'
 import { Outlet } from 'react-router'
+import { Link } from 'react-router-dom'
 
 const darkTheme = createTheme({
     palette: {
@@ -24,13 +23,9 @@ export default function BottomAppBar() {
             <CssBaseline />
             <AppBar position="fixed" color="primary">
                 <Toolbar>
-                    <IconButton color="inherit" aria-label="open drawer">
-                        <MenuIcon />
-                    </IconButton>
+                    <Link to='/'>Home</Link>
                     <Box sx={{ flexGrow: 1 }} />
-                    <IconButton color="inherit">
-                        <SearchIcon />
-                    </IconButton>
+                    <Link to='about'>About</Link>
                     <IconButton color="inherit">
                         <MoreIcon />
                     </IconButton>

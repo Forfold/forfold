@@ -20,13 +20,13 @@ const router = createBrowserRouter([
         errorElement: <ErrorPage />,
         children: [
             {
-                path: '/about/',
+                path: '/about',
                 element: <About />,
             },
         ],
     },
 ], {
-    basename: '/forfold/'
+    basename: '/forfold'
 })
   
 
