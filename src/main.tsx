@@ -25,9 +25,7 @@ const router = createBrowserRouter([
             },
         ],
     },
-], {
-    basename: '/forfold'
-})
+])
   
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
