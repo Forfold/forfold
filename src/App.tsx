@@ -1,36 +1,45 @@
 import React from 'react'
+import { ThemeProvider } from '@mui/material/styles'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
-import { ThemeProvider, createTheme } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
+import Link from '@mui/material/Link'
 import Toolbar from '@mui/material/Toolbar'
-import IconButton from '@mui/material/IconButton'
-import MoreIcon from '@mui/icons-material/MoreVert'
+import useScrollTrigger from '@mui/material/useScrollTrigger'
 import { Outlet } from 'react-router'
-import { Link } from 'react-router-dom'
+import { Link as RouterLink } from 'react-router-dom'
+import { theme } from './theme'
 
-const darkTheme = createTheme({
-    palette: {
-        mode: 'dark',
-    },
-})
+function ElevationScroll({ children }: { children: React.ReactElement }) {
+    const trigger = useScrollTrigger({
+        disableHysteresis: true,
+        threshold: 0,
+    })
 
-export default function BottomAppBar() {
+    return React.cloneElement(children, {
+        elevation: trigger ? 4 : 0,
+    })
+}
 
-      
+export default function BottomAppBar() {      
     return (
-        <ThemeProvider theme={darkTheme}>
+        <ThemeProvider theme={theme}>
             <CssBaseline />
-            <AppBar position="fixed" color="primary">
-                <Toolbar>
-                    <Link to='/'>Home</Link>
-                    <Box sx={{ flexGrow: 1 }} />
-                    <Link to='about'>About</Link>
-                    <IconButton color="inherit">
-                        <MoreIcon />
-                    </IconButton>
-                </Toolbar>
-            </AppBar>
+            <ElevationScroll>
+                <AppBar>
+                    <Toolbar>
+                        <Link component={RouterLink} to='/' underline='none'>
+                            HOME
+                        </Link>
+                        <Box sx={{ flexGrow: 1 }} />
+                        <Link component={RouterLink} to='about' underline='none'>
+                            ABOUT
+                        </Link>
+                    </Toolbar>
+                </AppBar>
+            </ElevationScroll>
+            <Toolbar sx={{ mb: 2 }}/>
+
             {/* Content Here */}
             <Outlet />
         </ThemeProvider>

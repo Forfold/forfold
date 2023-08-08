@@ -39,6 +39,9 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
+        env:
+          VITE_REACT_APP_GOOGLE_API: ${{ secrets.VITE_REACT_APP_GOOGLE_API }}
+          VITE_REACT_APP_ALASKA_FOLDER_ID: ${{ secrets.VITE_REACT_APP_ALASKA_FOLDER_ID }}
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
