@@ -9,19 +9,13 @@ export type Image = {
     originalFilename: string
 }
 
-let count = 0
-
 export default function Images() {
     const [images, setImages] = useState<Array<Image>>([])
     const [focusedImage, setFocusedImage] = useState<string>('')
     const [pageToken, setPageToken] = useState<string>()
     const [error, setError] = useState<string>()
 
-    function fetchImageThumbnails() {
-        if (count > 0) {
-            return
-        }
-
+    useEffect(() => {
         window.gapi.load('client', () => {
             window.gapi.client.init({
                 'apiKey': import.meta.env.VITE_REACT_APP_GOOGLE_API,
@@ -37,17 +31,13 @@ export default function Images() {
                 })
             }).then(function(response) {
                 const _images = (response.result.items as Array<Image>)
+                console.log(_images)
                 setImages([...images, ..._images])
                 setPageToken(response.result.nextPageToken)
-                count = count + 1
             }, function(reason) {
                 setError(reason.result.error.message)
             })
         })
-    }
-
-    useEffect(() => {
-        fetchImageThumbnails()
     }, [])
 
     return (

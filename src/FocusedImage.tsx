@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import { Dialog, Typography } from '@mui/material'
+import AppBar from '@mui/material/AppBar'
+import Dialog from '@mui/material/Dialog'
+import DialogContent from '@mui/material/DialogContent'
+import Toolbar from '@mui/material/Toolbar'
+import IconButton from '@mui/material/IconButton'
+import Typography from '@mui/material/Typography'
+import CloseIcon from '@mui/icons-material/Close'
 import { Image } from './Images'
 
 interface FocusedImageProps {
@@ -46,17 +52,34 @@ export default function FocusedImage(props: FocusedImageProps) {
     }, [focusedImage])
 
     return (
-        <Dialog maxWidth='xl' open={open} onClose={() => onClose()}>
-            {
-                loading
-                    ?
-                    <Typography>Loading...</Typography>
-                    :
-                    <img
-                        src={`https://drive.google.com/uc?export=view&id=${imageID}`}
-                        style={{ maxHeight: '90vh', maxWidth: '90vw' }}
-                    />
-            }
+        <Dialog fullScreen open={open} onClose={() => onClose()}>
+            <AppBar sx={{ position: 'relative' }}>
+                <Toolbar>
+                    <IconButton
+                        edge="start"
+                        color="inherit"
+                        onClick={() => onClose()}
+                        aria-label="close"
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                    <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                        {focusedImage}
+                    </Typography>
+                </Toolbar>
+            </AppBar>
+            <DialogContent sx={{ display: 'flex', justifyContent: 'center' }}>
+                {
+                    loading
+                        ?
+                        <Typography>Loading...</Typography>
+                        :
+                        <img
+                            src={`https://drive.google.com/uc?export=view&id=${imageID}`}
+                            style={{ maxWidth: '100%', maxHeight: '100%' }}
+                        />
+                }
+            </DialogContent>
             {error && (
                 <Typography>
                     {error}
