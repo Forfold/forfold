@@ -14,8 +14,6 @@ export default function Images() {
 
     useEffect(() => {
         window.gapi.load('client', () => {
-
-            console.log(import.meta.env.VITE_REACT_APP_ALASKA_FOLDER_ID)
             window.gapi.client.init({
                 'apiKey': import.meta.env.VITE_REACT_APP_GOOGLE_API,
             }).then(function() {
