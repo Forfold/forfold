@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react'
 import { Grid, Typography } from '@mui/material'
+import FocusedImage from './FocusedImage'
 
-type Image = {
+export type Image = {
     id: string
     thumbnailLink: string
     embedLink: string
-
+    originalFilename: string
 }
+
+let count = 0
 
 export default function Images() {
     const [images, setImages] = useState<Array<Image>>([])
-    const [error, setError] = useState<string>('')
+    const [focusedImage, setFocusedImage] = useState<string>('')
+    const [pageToken, setPageToken] = useState<string>()
+    const [error, setError] = useState<string>()
 
-    useEffect(() => {
+    function fetchImageThumbnails() {
+        if (count > 0) {
+            return
+        }
+
         window.gapi.load('client', () => {
             window.gapi.client.init({
                 'apiKey': import.meta.env.VITE_REACT_APP_GOOGLE_API,
@@ -21,19 +30,28 @@ export default function Images() {
                     'path': '/drive/v2/files',
                     'method': 'GET',
                     'params': {
-                        q: `'${import.meta.env.VITE_REACT_APP_ALASKA_FOLDER_ID}' in parents`
+                        q: `'${import.meta.env.VITE_REACT_APP_ALASKA_THUMBNAILS_ID}' in parents`,
+                        orderBy: 'title',
+                        pageToken
                     },
                 })
             }).then(function(response) {
-                setImages(response.result.items as Array<Image>)
+                const _images = (response.result.items as Array<Image>)
+                setImages([...images, ..._images])
+                setPageToken(response.result.nextPageToken)
+                count = count + 1
             }, function(reason) {
                 setError(reason.result.error.message)
             })
         })
+    }
+
+    useEffect(() => {
+        fetchImageThumbnails()
     }, [])
-    
+
     return (
-        <Grid container spacing={2} sx={{ pr: 4, pl: 4 }}>
+        <Grid container spacing={2} display='flex' justifyContent='center' alignItems='center'>
             {error && (
                 <Grid item xs={12}>
                     <Typography>
@@ -43,10 +61,14 @@ export default function Images() {
             )}
             {images.map((image) => (
                 <Grid key={image.id} item>
-                    {/* https://drive.google.com/uc?export=view&id=${image.id} */}
-                    <img src={image.thumbnailLink} alt="drive image"/>
+                    <img
+                        src={`https://drive.google.com/uc?export=view&id=${image.id}`}
+                        style={{ maxHeight: '500px', height: 'auto' }}
+                        onClick={() => setFocusedImage(image.originalFilename)}
+                    />
                 </Grid>
             ))}
+            <FocusedImage open={Boolean(focusedImage)} onClose={() => setFocusedImage('')} focusedImage={focusedImage} />
         </Grid>
     )
 }
