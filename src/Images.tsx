@@ -35,7 +35,7 @@ export default function Images() {
                         method: 'GET',
                         params: {
                             q: `'${
-                                import.meta.env.VITE_REACT_APP_ALASKA_THUMBNAILS_ID
+                                import.meta.env.VITE_REACT_APP_PORTFOLIO_THUMBNAILS_ID
                             }' in parents`,
                             orderBy: 'title',
                             pageToken,

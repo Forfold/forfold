@@ -36,7 +36,7 @@ export default function FocusedImage(props: FocusedImageProps) {
                         method: 'GET',
                         params: {
                             q: `'${
-                                import.meta.env.VITE_REACT_APP_ALASKA_FOLDER_ID
+                                import.meta.env.VITE_REACT_APP_PORTFOLIO_ID
                             }' in parents and title = '${fileName}'`,
                             orderBy: 'title',
                         },
