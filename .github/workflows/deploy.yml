@@ -2,6 +2,7 @@
 name: Deploy static content to Pages
 
 on:
+  # Runs on pushes targeting the default branch
   push:
     branches: ['master']
 
@@ -20,30 +21,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_and_predeploy:
-    name: Build and Predeploy
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v2
-
-      - name: Setup Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        uses: bahmutov/npm-install@v1
-
-      - name: Build and predeploy project
-        run: npm run predeploy
-
-      - name: Upload production-ready build files
-        uses: actions/upload-artifact@v2
-        with:
-          name: production-files
-          path: ./dist
   # Single deploy job since we're just deploying
   deploy:
     environment:
