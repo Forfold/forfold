@@ -8,7 +8,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "add-domain": "echo \"forfold.com\" > dist/CNAME",
+    "predeploy": "npm run build && npm run add-domain"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",
