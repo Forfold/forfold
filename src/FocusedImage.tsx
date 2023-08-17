@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react'
 import Dialog from '@mui/material/Dialog'
 import Typography from '@mui/material/Typography'
 import { Image } from './Images'
+import Toolbar from '@mui/material/Toolbar'
+import IconButton from '@mui/material/IconButton'
+import DialogContent from '@mui/material/DialogContent'
+import CloseIcon from '@mui/icons-material/Close'
 
 interface FocusedImageProps {
   open: boolean;
@@ -59,37 +63,40 @@ export default function FocusedImage(props: FocusedImageProps) {
 
     const imageStyle: React.CSSProperties = {
         zIndex: 1,
-        width: '100%',
+        width: '90%',
         height: '100%',
-        maxWidth: '90vw',
-        maxHeight: '90vh',
+        maxWidth: 'auto',
+        maxHeight: '100vh',
         objectFit: 'contain',
     }
 
     return (
-        <Dialog maxWidth="lg" fullWidth open={open} onClose={() => onClose()}>
-            {loading ? (
-                <img src={thumbnail} style={imageStyle} />
-            ) : (
-                <img
-                    src={`https://drive.google.com/uc?export=view&id=${imageID}`}
-                    style={imageStyle}
-                />
-            )}
+        <Dialog fullScreen open={open} onClose={() => onClose()}>
+            <div style={{ backgroundColor: 'black', height: '100%' }}>
+                <Toolbar>
+                    <IconButton
+                        edge="start"
+                        color="inherit"
+                        onClick={() => onClose()}
+                        aria-label="close"
+                        sx={{ p: 1.5 }}
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </Toolbar>
+                <DialogContent sx={{ pt: 0, pb: 0, display: 'flex', justifyContent: 'center' }}>
+                    {loading ? (
+                        <img src={thumbnail} style={imageStyle} />
+                    ) : (
+                        <img
+                            src={`https://drive.google.com/uc?export=view&id=${imageID}`}
+                            style={imageStyle}
+                        />
+                    )}
 
-            {error && <Typography>{error}</Typography>}
-
-            <img
-                src={thumbnail}
-                style={{
-                    ...imageStyle,
-                    zIndex: 0,
-                    overflow: 'hidden',
-                    objectFit: 'fill',
-                    position: 'absolute',
-                    filter: 'blur(20px)',
-                }}
-            />
+                    {error && <Typography>{error}</Typography>}
+                </DialogContent>
+            </div>
         </Dialog>
     )
 }
