@@ -1,14 +1,15 @@
 import React from 'react'
-import { ThemeProvider } from '@mui/material/styles'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
-import CssBaseline from '@mui/material/CssBaseline'
-import Link from '@mui/material/Link'
 import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import Tabs from '@mui/material/Tabs'
+import Tab from '@mui/material/Tab'
+import CssBaseline from '@mui/material/CssBaseline'
 import useScrollTrigger from '@mui/material/useScrollTrigger'
-import { Outlet } from 'react-router'
-import { Link as RouterLink } from 'react-router-dom'
+import { styled, ThemeProvider } from '@mui/material/styles'
 import { theme } from './theme'
+import Images from './Images'
 
 function ElevationScroll({ children }: { children: React.ReactElement }) {
     const trigger = useScrollTrigger({
@@ -21,27 +22,95 @@ function ElevationScroll({ children }: { children: React.ReactElement }) {
     })
 }
 
-export default function BottomAppBar() {      
+const StyledTabs = styled(
+    (props: {
+    children?: React.ReactNode;
+    value: number;
+    onChange: (event: React.SyntheticEvent, newValue: number) => void;
+  }) => (
+        <Tabs
+            {...props}
+            TabIndicatorProps={{
+                children: <span className="MuiTabs-indicatorSpan" />,
+            }}
+        />
+    ),
+)({
+    '& .MuiTabs-indicator': {
+        display: 'flex',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+    },
+    '& .MuiTabs-indicatorSpan': {
+        maxWidth: 40,
+        width: '100%',
+        backgroundColor: '#635ee7',
+    },
+})
+
+const StyledTab = styled((props: { label: string }) => (
+    <Tab disableRipple {...props} />
+))(({ theme }) => ({
+    textTransform: 'none',
+    fontWeight: theme.typography.fontWeightRegular,
+    fontSize: theme.typography.pxToRem(22),
+    marginRight: theme.spacing(1),
+    color: 'rgba(255, 255, 255, 0.7)',
+    '&.Mui-selected': {
+        color: '#fff',
+    },
+    '&.Mui-focusVisible': {
+        backgroundColor: 'rgba(100, 95, 228, 0.32)',
+    },
+}))
+
+export default function App() {
+    const [value, setValue] = React.useState(1)
+
+    const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+        setValue(newValue)
+    }
+    
+    function renderAppbar() {
+        return (
+            <Box sx={{ justifyContent: 'center' }}>
+                <Box>
+                    <Typography variant='h1' sx={{ fontVariant: 'small-caps' }}>
+                        Nathaniel Cook
+                    </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                    <StyledTabs
+                        value={value}
+                        onChange={handleChange}
+                    >
+                        <StyledTab label="MUSIC" />
+                        <StyledTab label="PHOTOS" />
+                        <StyledTab label="CODE" />
+                    </StyledTabs>
+                </Box>
+            </Box>
+        )
+    }
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <ElevationScroll>
-                <AppBar>
-                    <Toolbar>
-                        <Link component={RouterLink} to='/' underline='none'>
-                            HOME
-                        </Link>
-                        <Box sx={{ flexGrow: 1 }} />
-                        <Link component={RouterLink} to='about' underline='none'>
-                            ABOUT
-                        </Link>
-                    </Toolbar>
+                <AppBar sx={{ alignItems: 'center', pt: 1 }}>
+                    {renderAppbar()}
                 </AppBar>
             </ElevationScroll>
-            <Toolbar sx={{ mb: 2 }}/>
+            <Toolbar sx={{ visibility: 'hidden', mt: 1 }}>
+                {renderAppbar()}
+            </Toolbar>
 
-            {/* Content Here */}
-            <Outlet />
+            <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+                <div />
+                {value === 0 && <div>Coming Soon</div>}
+                {value === 1 && <Images />}
+                {value === 2 && <div>Coming Soon</div>}
+            </Box>
         </ThemeProvider>
     )
 }

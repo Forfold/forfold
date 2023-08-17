@@ -6,8 +6,6 @@ import {
     RouterProvider,
 } from 'react-router-dom'
 import ErrorPage from './ErrorPage'
-import Images from './Images'
-import About from './About'
 
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
@@ -19,16 +17,6 @@ const router = createBrowserRouter([
         path: '/',
         element: <App />,
         errorElement: <ErrorPage />,
-        children: [
-            {
-                path: '/',
-                element: <Images />,
-            },
-            {
-                path: '/about',
-                element: <About />,
-            },
-        ],
     },
 ])
   
