@@ -53,7 +53,7 @@ const StyledTab = styled((props: { label: string }) => (
 ))(({ theme }) => ({
     textTransform: 'none',
     fontWeight: theme.typography.fontWeightRegular,
-    fontSize: theme.typography.pxToRem(22),
+    fontSize: theme.typography.pxToRem(18),
     marginRight: theme.spacing(1),
     color: 'rgba(255, 255, 255, 0.7)',
     '&.Mui-selected': {
@@ -75,7 +75,7 @@ export default function App() {
         return (
             <Box sx={{ justifyContent: 'center' }}>
                 <Box>
-                    <Typography variant='h1' sx={{ fontVariant: 'small-caps' }}>
+                    <Typography variant='h2' component='h1' sx={{ fontVariant: 'small-caps' }}>
                         Nathaniel Cook
                     </Typography>
                 </Box>
@@ -97,7 +97,7 @@ export default function App() {
         <ThemeProvider theme={theme}>
             <CssBaseline />
             <ElevationScroll>
-                <AppBar sx={{ alignItems: 'center', pt: 1 }}>
+                <AppBar sx={{ alignItems: 'center', pt: 1, background: 'rgba(51, 78, 125, 0.8)' }}>
                     {renderAppbar()}
                 </AppBar>
             </ElevationScroll>
