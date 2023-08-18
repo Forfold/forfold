@@ -6,11 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "npm run add-domain && tsc && vite build",
     "lint": "eslint src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "add-domain": "echo \"forfold.com\" > dist/CNAME",
-    "deploy": "npm run build && npm run add-domain"
+    "add-domain": "echo \"forfold.com\" > dist/CNAME"
   },
   "dependencies": {
     "@emotion/react": "^11.11.1",

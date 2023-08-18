@@ -38,7 +38,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Build
-        run: npm run deploy
+        run: npm run build
         env:
           VITE_REACT_APP_GOOGLE_API: ${{ secrets.VITE_REACT_APP_GOOGLE_API }}
           VITE_REACT_APP_PORTFOLIO_ID: ${{ secrets.VITE_REACT_APP_PORTFOLIO_ID }}
