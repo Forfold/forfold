@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run add-domain && tsc && vite build",
+    "build": "tsc && vite build && npm run add-domain",
     "lint": "eslint src --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "add-domain": "echo \"forfold.com\" > dist/CNAME"
