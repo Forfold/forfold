@@ -14,7 +14,7 @@ const defaultValue = {
     thumbnail: '',
 }
 
-export default function Images() {
+export default function GDrivePortfolio() {
     const [images, setImages] = useState<Array<Image>>([])
     const [focusedImage, setFocusedImage] = useState<{
     fileName: string;
@@ -24,36 +24,40 @@ export default function Images() {
     const [error, setError] = useState<string>()
 
     useEffect(() => {
-        window.gapi.load('client', () => {
-            window.gapi.client
-                .init({
-                    apiKey: import.meta.env.VITE_REACT_APP_GOOGLE_API,
-                })
-                .then(function () {
-                    return gapi.client.request({
-                        path: '/drive/v2/files',
-                        method: 'GET',
-                        params: {
-                            q: `'${
-                                import.meta.env.VITE_REACT_APP_PORTFOLIO_THUMBNAILS_ID
-                            }' in parents`,
-                            orderBy: 'title',
-                            pageToken,
-                        },
+        const fetchPortfolio = async () => {
+            window.gapi.load('client', async () => {
+                await window.gapi.client
+                    .init({
+                        apiKey: import.meta.env.VITE_REACT_APP_GOOGLE_API,
                     })
-                })
-                .then(
-                    function (response) {
-                        const _images = response.result.items as Array<Image>
-                        console.log(_images)
-                        setImages([...images, ..._images])
-                        setPageToken(response.result.nextPageToken)
-                    },
-                    function (reason) {
-                        setError(reason.result.error.message)
-                    },
-                )
-        })
+                    .then(function () {
+                        return gapi.client.request({
+                            path: '/drive/v2/files',
+                            method: 'GET',
+                            params: {
+                                q: `'${
+                                    import.meta.env.VITE_REACT_APP_PORTFOLIO_THUMBNAILS_ID
+                                }' in parents`,
+                                orderBy: 'title',
+                                pageToken,
+                            },
+                        })
+                    })
+                    .then(
+                        function (response) {
+                            const _images = response.result.items as Array<Image>
+                            console.log(_images)
+                            setImages([...images, ..._images])
+                            setPageToken(response.result.nextPageToken)
+                        },
+                        function (reason) {
+                            setError(reason.result.error.message)
+                        },
+                    )
+            })
+        }
+
+        fetchPortfolio()
     }, [])
 
     return (

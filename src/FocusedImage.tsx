@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import Dialog from '@mui/material/Dialog'
 import Typography from '@mui/material/Typography'
-import { Image } from './Images'
+import { Image } from './GDrivePortfolio'
 import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
 import DialogContent from '@mui/material/DialogContent'

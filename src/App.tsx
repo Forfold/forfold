@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
 import Toolbar from '@mui/material/Toolbar'
@@ -9,7 +9,9 @@ import CssBaseline from '@mui/material/CssBaseline'
 import useScrollTrigger from '@mui/material/useScrollTrigger'
 import { styled, ThemeProvider } from '@mui/material/styles'
 import { theme } from './theme'
-import Images from './Images'
+import GDrivePortfolio from './GDrivePortfolio'
+import GitHubProfile from './GitHubProfile'
+import SoundCloudFrames from './SoundCloudFrames'
 
 function ElevationScroll({ children }: { children: React.ReactElement }) {
     const trigger = useScrollTrigger({
@@ -78,6 +80,9 @@ export default function App() {
                     <Typography variant='h2' component='h1' sx={{ fontVariant: 'small-caps' }}>
                         Nathaniel Cook
                     </Typography>
+                    <Typography variant='h5' component='h2' sx={{ fontVariant: 'small-caps', textAlign: 'center' }}>
+                        <a href="mailto:prod.forfold@gmail.com" style={{ color: 'white' }}>prod.forfold@gmail.com</a>
+                    </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                     <StyledTabs
@@ -107,10 +112,13 @@ export default function App() {
 
             <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
                 <div />
-                {value === 0 && <div>Coming Soon</div>}
-                {value === 1 && <Images />}
-                {value === 2 && <div>Coming Soon</div>}
+                <Suspense fallback={<div>Loading...</div>}>
+                    {value === 0 && <SoundCloudFrames />}
+                    {value === 1 && <GDrivePortfolio />}
+                    {value === 2 && <GitHubProfile username='forfold' />}
+                </Suspense>
             </Box>
+            <Box sx={{ flexGrow: 1 }} />
         </ThemeProvider>
     )
 }
