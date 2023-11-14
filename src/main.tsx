@@ -2,8 +2,8 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
 import {
-    createBrowserRouter,
-    RouterProvider,
+  createBrowserRouter,
+  RouterProvider,
 } from 'react-router-dom'
 import ErrorPage from './ErrorPage'
 
@@ -13,16 +13,16 @@ import '@fontsource/roboto/500.css'
 import '@fontsource/roboto/700.css'
 
 const router = createBrowserRouter([
-    {
-        path: '/',
-        element: <App />,
-        errorElement: <ErrorPage />,
-    },
+  {
+    path: '/',
+    element: <App />,
+    errorElement: <ErrorPage />,
+  },
 ])
   
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-    <React.StrictMode>
-        <RouterProvider router={router} />
-    </React.StrictMode>
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>
 )

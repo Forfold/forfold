@@ -10,82 +10,82 @@ export type Image = {
 };
 
 const defaultValue = {
-    fileName: '',
-    thumbnail: '',
+  fileName: '',
+  thumbnail: '',
 }
 
 export default function GDrivePortfolio() {
-    const [images, setImages] = useState<Array<Image>>([])
-    const [focusedImage, setFocusedImage] = useState<{
+  const [images, setImages] = useState<Array<Image>>([])
+  const [focusedImage, setFocusedImage] = useState<{
     fileName: string;
     thumbnail: string;
   }>(defaultValue)
-    const [pageToken, setPageToken] = useState<string>()
-    const [error, setError] = useState<string>()
+  const [pageToken, setPageToken] = useState<string>()
+  const [error, setError] = useState<string>()
 
-    useEffect(() => {
-        const fetchPortfolio = async () => {
-            window.gapi.load('client', async () => {
-                await window.gapi.client
-                    .init({
-                        apiKey: import.meta.env.VITE_REACT_APP_GOOGLE_API,
-                    })
-                    .then(function () {
-                        return gapi.client.request({
-                            path: '/drive/v2/files',
-                            method: 'GET',
-                            params: {
-                                q: `'${
-                                    import.meta.env.VITE_REACT_APP_PORTFOLIO_THUMBNAILS_ID
-                                }' in parents`,
-                                orderBy: 'title',
-                                pageToken,
-                            },
-                        })
-                    })
-                    .then(
-                        function (response) {
-                            const _images = response.result.items as Array<Image>
-                            console.log(_images)
-                            setImages([...images, ..._images])
-                            setPageToken(response.result.nextPageToken)
-                        },
-                        function (reason) {
-                            setError(reason.result.error.message)
-                        },
-                    )
+  useEffect(() => {
+    const fetchPortfolio = async () => {
+      window.gapi.load('client', async () => {
+        await window.gapi.client
+          .init({
+            apiKey: import.meta.env.VITE_REACT_APP_GOOGLE_API,
+          })
+          .then(function () {
+            return gapi.client.request({
+              path: '/drive/v2/files',
+              method: 'GET',
+              params: {
+                q: `'${
+                  import.meta.env.VITE_REACT_APP_PORTFOLIO_THUMBNAILS_ID
+                }' in parents`,
+                orderBy: 'title',
+                pageToken,
+              },
             })
-        }
+          })
+          .then(
+            function (response) {
+              const _images = response.result.items as Array<Image>
+              console.log(_images)
+              setImages([...images, ..._images])
+              setPageToken(response.result.nextPageToken)
+            },
+            function (reason) {
+              setError(reason.result.error.message)
+            },
+          )
+      })
+    }
 
-        fetchPortfolio()
-    }, [])
+    fetchPortfolio()
+  }, [])
 
-    return (
-        <ImageList variant='masonry' cols={2} gap={8}>
-            {error && (
-                <ImageListItem>
-                    <Typography>{error}</Typography>
-                </ImageListItem>
-            )}
-            {images.map((image) => (
-                <ImageListItem key={image.id}>
-                    <img
-                        src={`https://drive.google.com/uc?export=view&id=${image.id}`}
-                        style={{ maxHeight: '500px', height: 'auto' }}
-                        onClick={() =>
-                            setFocusedImage({
-                                fileName: image.originalFilename,
-                                thumbnail: `https://drive.google.com/uc?export=view&id=${image.id}`,
-                            })
-                        }
-                    />
-                </ImageListItem>
-            ))}
-            <FocusedImage
-                open={Boolean(focusedImage.fileName)}
-                onClose={() => setFocusedImage(defaultValue)}
-                focusedImage={focusedImage}
-            />
-        </ImageList>
-    )
+  return (
+    <ImageList variant='masonry' cols={2} gap={8}>
+      {error && (
+        <ImageListItem>
+          <Typography>{error}</Typography>
+        </ImageListItem>
+      )}
+      {images.map((image) => (
+        <ImageListItem key={image.id}>
+          <img
+            src={`https://drive.google.com/uc?export=view&id=${image.id}`}
+            style={{ maxHeight: '500px', height: 'auto' }}
+            onClick={() =>
+              setFocusedImage({
+                fileName: image.originalFilename,
+                thumbnail: `https://drive.google.com/uc?export=view&id=${image.id}`,
+              })
+            }
+          />
+        </ImageListItem>
+      ))}
+      <FocusedImage
+        open={Boolean(focusedImage.fileName)}
+        onClose={() => setFocusedImage(defaultValue)}
+        focusedImage={focusedImage}
+      />
+    </ImageList>
+  )
 }
