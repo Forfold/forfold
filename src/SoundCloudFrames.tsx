@@ -6,7 +6,7 @@ export default function SoundCloudFrames() {
     <Grid container spacing={2}>
       <Grid item xs={12}>
         <iframe
-          width="100%"
+          style={{ maxWidth: '800px', width: '100%' }}
           height="166"
           scrolling="no"
           frameBorder="no"
@@ -16,7 +16,7 @@ export default function SoundCloudFrames() {
       </Grid>
       <Grid item xs={12}>
         <iframe
-          width="100%"
+          style={{ maxWidth: '800px', width: '100%' }}
           height="166"
           scrolling="no"
           frameBorder="no"
@@ -26,7 +26,7 @@ export default function SoundCloudFrames() {
       </Grid>
       <Grid item xs={12}>
         <iframe
-          width="100%"
+          style={{ maxWidth: '800px', width: '100%' }}
           height="166"
           scrolling="no"
           frameBorder="no"
@@ -36,7 +36,7 @@ export default function SoundCloudFrames() {
       </Grid>
       <Grid item xs={12}>
         <iframe
-          width="100%"
+          style={{ maxWidth: '800px', width: '100%' }}
           height="166"
           scrolling="no"
           frameBorder="no"

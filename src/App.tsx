@@ -71,7 +71,7 @@ export default function App() {
             sx={(theme) => ({
               position: 'fixed',
               right: '2%',
-              [theme.breakpoints.down('md')]: {
+              [theme.breakpoints.down('lg')]: {
                 position: 'relative'
               }
             })}
