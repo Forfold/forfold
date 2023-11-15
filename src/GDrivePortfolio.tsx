@@ -72,7 +72,7 @@ export default function GDrivePortfolio() {
           <Grid key={image.id} item xs={12}>
             <img
               src={`https://drive.google.com/uc?export=view&id=${image.id}`}
-              style={{ width: '500px', height: 'auto' }}
+              style={{ maxWidth: '500px', width: '130%', height: 'auto' }}
               onClick={() =>
                 setFocusedImage({
                   fileName: image.originalFilename,
