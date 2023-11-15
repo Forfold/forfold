@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ImageList, ImageListItem, Typography } from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import FocusedImage from './FocusedImage'
 
 export type Image = {
@@ -61,31 +61,33 @@ export default function GDrivePortfolio() {
   }, [])
 
   return (
-    <ImageList variant='masonry' cols={2} gap={8}>
-      {error && (
-        <ImageListItem>
-          <Typography>{error}</Typography>
-        </ImageListItem>
-      )}
-      {images.map((image) => (
-        <ImageListItem key={image.id}>
-          <img
-            src={`https://drive.google.com/uc?export=view&id=${image.id}`}
-            style={{ maxHeight: '500px', height: 'auto' }}
-            onClick={() =>
-              setFocusedImage({
-                fileName: image.originalFilename,
-                thumbnail: `https://drive.google.com/uc?export=view&id=${image.id}`,
-              })
-            }
-          />
-        </ImageListItem>
-      ))}
+    <React.Fragment>
+      <Grid container>
+        {error && (
+          <Grid item>
+            <Typography>{error}</Typography>
+          </Grid>
+        )}
+        {images.map((image) => (
+          <Grid key={image.id} item xs={12}>
+            <img
+              src={`https://drive.google.com/uc?export=view&id=${image.id}`}
+              style={{ width: '500px', height: 'auto' }}
+              onClick={() =>
+                setFocusedImage({
+                  fileName: image.originalFilename,
+                  thumbnail: `https://drive.google.com/uc?export=view&id=${image.id}`,
+                })
+              }
+            />
+          </Grid>
+        ))}
+      </Grid>
       <FocusedImage
         open={Boolean(focusedImage.fileName)}
         onClose={() => setFocusedImage(defaultValue)}
         focusedImage={focusedImage}
       />
-    </ImageList>
+    </React.Fragment>
   )
 }

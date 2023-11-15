@@ -1,28 +1,12 @@
 import React, { Suspense } from 'react'
-import AppBar from '@mui/material/AppBar'
-import Box from '@mui/material/Box'
-import Toolbar from '@mui/material/Toolbar'
-import Typography from '@mui/material/Typography'
-import Tabs from '@mui/material/Tabs'
-import Tab from '@mui/material/Tab'
-import CssBaseline from '@mui/material/CssBaseline'
-import useScrollTrigger from '@mui/material/useScrollTrigger'
+import CssBaseline from '@mui/material/CssBaseline' // keep this import first
+import { Box, Tabs, Tab, Typography } from '@mui/material'
 import { styled, ThemeProvider } from '@mui/material/styles'
 import { theme } from './theme'
 import GDrivePortfolio from './GDrivePortfolio'
 import GitHubProfile from './GitHubProfile'
 import SoundCloudFrames from './SoundCloudFrames'
-
-function ElevationScroll({ children }: { children: React.ReactElement }) {
-  const trigger = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: 0,
-  })
-
-  return React.cloneElement(children, {
-    elevation: trigger ? 4 : 0,
-  })
-}
+import Footer from './Footer'
 
 const StyledTabs = styled(
   (props: {
@@ -31,6 +15,7 @@ const StyledTabs = styled(
     onChange: (event: React.SyntheticEvent, newValue: number) => void;
   }) => (
     <Tabs
+      orientation='vertical'
       {...props}
       TabIndicatorProps={{
         children: <span className="MuiTabs-indicatorSpan" />,
@@ -38,6 +23,9 @@ const StyledTabs = styled(
     />
   ),
 )({
+  '& .MuiTabs-flexContainer': {
+    alignItems: 'end'
+  },
   '& .MuiTabs-indicator': {
     display: 'flex',
     justifyContent: 'center',
@@ -46,11 +34,11 @@ const StyledTabs = styled(
   '& .MuiTabs-indicatorSpan': {
     maxWidth: 40,
     width: '100%',
-    backgroundColor: '#635ee7',
+    backgroundColor: 'white',
   },
 })
 
-const StyledTab = styled((props: { label: string }) => (
+const StyledTab = styled((props: { label: string, value: number }) => (
   <Tab disableRipple {...props} />
 ))(({ theme }) => ({
   textTransform: 'none',
@@ -67,58 +55,56 @@ const StyledTab = styled((props: { label: string }) => (
 }))
 
 export default function App() {
-  const [value, setValue] = React.useState(1)
+  const [value, setValue] = React.useState(0)
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
-  }
-    
-  function renderAppbar() {
-    return (
-      <Box sx={{ justifyContent: 'center' }}>
-        <Box>
-          <Typography variant='h2' component='h1' sx={{ fontVariant: 'small-caps' }}>
-                        Nathaniel Cook
-          </Typography>
-          <Typography variant='h5' component='h2' sx={{ fontVariant: 'small-caps', textAlign: 'center' }}>
-            <a href="mailto:prod.forfold@gmail.com" style={{ color: 'white' }}>prod.forfold@gmail.com</a>
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <StyledTabs
-            value={value}
-            onChange={handleChange}
-          >
-            <StyledTab label="MUSIC" />
-            <StyledTab label="PHOTOS" />
-            <StyledTab label="CODE" />
-          </StyledTabs>
-        </Box>
-      </Box>
-    )
   }
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ElevationScroll>
-        <AppBar sx={{ alignItems: 'center', pt: 1, background: 'rgba(51, 78, 125, 0.8)' }}>
-          {renderAppbar()}
-        </AppBar>
-      </ElevationScroll>
-      <Toolbar sx={{ visibility: 'hidden', mt: 1 }}>
-        {renderAppbar()}
-      </Toolbar>
-
-      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
-        <div />
-        <Suspense fallback={<div>Loading...</div>}>
-          {value === 0 && <SoundCloudFrames />}
-          {value === 1 && <GDrivePortfolio />}
-          {value === 2 && <GitHubProfile username='forfold' />}
-        </Suspense>
+      <Box sx={{ height: '100%', position: 'relative', padding: '2%' }}>
+        <Box id='border-box' sx={{ height: '100%', position: 'relative', border: '0.1px solid white', overflow: 'auto' }}>
+          <Box
+            id='sidebar'
+            sx={(theme) => ({
+              position: 'fixed',
+              right: '2%',
+              [theme.breakpoints.down('md')]: {
+                position: 'relative'
+              }
+            })}
+          >
+            <Typography
+              variant='h3'
+              component='h1'
+              // padding makes up for tab width
+              sx={{ fontVariant: 'small-caps', width: '100%', textAlign: 'end', pr: 3.5, pt: 1.5 }}
+            >
+              Nathaniel Cook
+            </Typography>
+            <StyledTabs
+              value={value}
+              onChange={handleChange}
+            >
+              <StyledTab value={0} label="HOME" />
+              <StyledTab value={1} label="MUSIC" />
+              <StyledTab value={2} label="PHOTOS" />
+            </StyledTabs>
+          </Box>
+          <Box sx={{ mr: '21%' }}>
+            <Box id='content-container' sx={{ height: '100%', m: 2 }}>
+              <Suspense fallback={<div>Loading...</div>}>
+                {value === 0 && <GitHubProfile />}
+                {value === 1 && <SoundCloudFrames />}
+                {value === 2 && <GDrivePortfolio />}
+              </Suspense>
+            </Box>
+          </Box>
+          <Footer tabValue={value} />
+        </Box>
       </Box>
-      <Box sx={{ flexGrow: 1 }} />
     </ThemeProvider>
   )
 }
