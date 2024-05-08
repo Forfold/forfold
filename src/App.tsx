@@ -3,10 +3,11 @@ import CssBaseline from '@mui/material/CssBaseline' // keep this import first
 import { Box, Tabs, Tab, Typography } from '@mui/material'
 import { styled, ThemeProvider } from '@mui/material/styles'
 import { theme } from './theme'
-import GDrivePortfolio from './GDrivePortfolio'
-import GitHubProfile from './GitHubProfile'
+// import GDrivePortfolio from './GDrivePortfolio'
+// import GitHubProfile from './GitHubProfile'
 import SoundCloudFrames from './SoundCloudFrames'
 import Footer from './Footer'
+import BassistAd from './BassistAd'
 
 const StyledTabs = styled(
   (props: {
@@ -64,7 +65,7 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ height: '100%', position: 'relative', padding: '2%' }}>
+      <Box sx={{ height: '100%', position: 'relative', padding: '2%', pb: 4 }}>
         <Box id='border-box' sx={{ height: '100%', position: 'relative', border: '0.1px solid white', overflow: 'auto' }}>
           <Box
             id='sidebar'
@@ -76,33 +77,36 @@ export default function App() {
               }
             })}
           >
-            <Typography
-              variant='h3'
-              component='h1'
-              // padding makes up for tab width
-              sx={{ fontVariant: 'small-caps', width: '100%', textAlign: 'end', pr: 3.5, pt: 1.5 }}
-            >
+            {value != 0 ? (
+              <Typography
+                variant='h3'
+                component='h1'
+                // padding makes up for tab width
+                sx={{ fontVariant: 'small-caps', width: '100%', textAlign: 'end', pr: 3.5, pt: 1.5 }}
+              >
               Nathaniel Cook
-            </Typography>
+              </Typography>
+            ) : null}
             <StyledTabs
               value={value}
               onChange={handleChange}
             >
               <StyledTab value={0} label="HOME" />
               <StyledTab value={1} label="MUSIC" />
-              <StyledTab value={2} label="PHOTOS" />
+              {/* <StyledTab value={2} label="PHOTOS" /> */}
             </StyledTabs>
           </Box>
           <Box sx={{ mr: '21%' }}>
             <Box id='content-container' sx={{ height: '100%', m: 2 }}>
               <Suspense fallback={<div>Loading...</div>}>
-                {value === 0 && <GitHubProfile />}
+                {/* {value === 0 && <GitHubProfile />} */}
+                {value === 0 && <BassistAd />}
                 {value === 1 && <SoundCloudFrames />}
-                {value === 2 && <GDrivePortfolio />}
+                {/* {value === 2 && <GDrivePortfolio />} */}
               </Suspense>
             </Box>
           </Box>
-          <Footer tabValue={value} />
+          <Footer />
         </Box>
       </Box>
     </ThemeProvider>
