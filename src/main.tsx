@@ -1,11 +1,8 @@
-import React from 'react'
+import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import App from './App'
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from 'react-router-dom'
-import ErrorPage from './ErrorPage'
+import { App } from './components/Main/index'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import ErrorPage from './components/Main/ErrorPage'
 
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
@@ -19,10 +16,9 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
 ])
-  
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <React.StrictMode>
+  <StrictMode>
     <RouterProvider router={router} />
-  </React.StrictMode>
+  </StrictMode>
 )
