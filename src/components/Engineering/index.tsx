@@ -1,6 +1,5 @@
-import { Box, Link, SxProps, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { DebugProfilePhoto, ProfilePhoto } from '../ProfilePhoto'
-import { Button } from '../StyledComponents/Button'
 import { Footer } from '../Main/Footer'
 
 export function Engineering() {
