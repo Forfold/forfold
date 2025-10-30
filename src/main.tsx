@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import { App } from './Main/'
+import { App } from './Main/index'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import ErrorPage from './Main/ErrorPage'
 
