@@ -15,7 +15,11 @@ export default function Home() {
         <ProfilePhoto />
       </Box>
       <Box sx={{ flex: 1, width: 'fit-content', maxWidth: '750px' }}>
-        <Typography variant="h4" component="h2" sx={{ pb: 2.5, textAlign: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h2"
+          sx={{ pb: 2.5, textAlign: 'center', fontWeight: 'bolder' }}
+        >
           Nathaniel Cook
         </Typography>
         <Typography variant="h6" component="h3" sx={{ pb: 2.5 }}>
@@ -30,7 +34,16 @@ export default function Home() {
         </Typography>
         <Typography>
           I also have a certificate in Audio Engineering Principals. I focus on drum recordings,
-          mixing, vocal narration, and voice acting. Contact me for more information!
+          mixing, vocal narration, and voice acting. Contact me at{' '}
+          <a
+            href="mailto:prod.forfold@gmail.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'black' }}
+          >
+            prod.forfold@gmail.com
+          </a>{' '}
+          for more information!
         </Typography>
       </Box>
     </Box>

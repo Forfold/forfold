@@ -1,6 +1,5 @@
 import { Box, Link, SxProps, Typography } from '@mui/material'
 import { ProfilePhoto } from '../ProfilePhoto'
-import React from 'react'
 
 export function Engineering() {
   return (
@@ -16,7 +15,11 @@ export function Engineering() {
         <ProfilePhoto />
       </Box>
       <Box sx={{ flex: 1, width: 'fit-content', maxWidth: '750px' }}>
-        <Typography variant="h4" component="h2" sx={{ pb: 2.5, textAlign: 'center' }}>
+        <Typography
+          variant="h3"
+          component="h2"
+          sx={{ pb: 2.5, textAlign: 'center', fontWeight: 'bolder' }}
+        >
           Nathaniel Cook
         </Typography>
 
