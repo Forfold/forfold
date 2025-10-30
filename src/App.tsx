@@ -81,22 +81,6 @@ export default function App() {
               },
             })}
           >
-            {value != 0 ? (
-              <Typography
-                variant="h3"
-                component="h1"
-                // padding makes up for tab width
-                sx={{
-                  fontVariant: 'small-caps',
-                  width: '100%',
-                  // textAlign: 'end',
-                  pr: 3.5,
-                  pt: 1.5,
-                }}
-              >
-                Nathaniel Cook
-              </Typography>
-            ) : null}
             <StyledTabs value={value} onChange={handleChange}>
               <StyledTab value={0} label="HOME" />
               <StyledTab value={1} label="ENGINEERING" />
