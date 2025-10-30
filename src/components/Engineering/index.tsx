@@ -1,5 +1,5 @@
 import { Box, Link, SxProps, Typography } from '@mui/material'
-import { ProfilePhoto } from '../ProfilePhoto'
+import { DebugProfilePhoto, ProfilePhoto } from '../ProfilePhoto'
 import { Button } from '../StyledComponents/Button'
 import { Footer } from '../Main/Footer'
 
@@ -15,6 +15,10 @@ export function Engineering() {
     >
       <Box sx={{ pb: 2, width: 'fit-content' }}>
         <ProfilePhoto />
+      </Box>
+
+      <Box sx={{ pb: 2, width: 'fit-content' }}>
+        <DebugProfilePhoto />
       </Box>
       <Box sx={{ flex: 1, width: 'fit-content', maxWidth: '750px' }}>
         <Typography
