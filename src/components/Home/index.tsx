@@ -10,7 +10,6 @@ export default function Home() {
         flexWrap: 'wrap',
         alignItems: 'flex-start',
         gap: 4,
-        color: 'white',
       }}
     >
       {/* left: avatar + basic info */}
@@ -28,18 +27,21 @@ export default function Home() {
       </Box>
 
       {/* right: main text */}
-      <Box sx={{ flex: 1, minWidth: 260, maxWidth: 700 }}>
-        <Typography variant="h5" component="h2" sx={{ pb: 2 }}>
-          I create and edit complex systems and audio.
+      <Box sx={{ flex: 1 }}>
+        <Typography variant="h4" component="h2" sx={{ pb: 2 }}>
+          Nathaniel Cook
+        </Typography>
+        <Typography variant="h6" component="h3" sx={{ pb: 2 }}>
+          I create and edit complex front-end experiences, apis, and audio.
         </Typography>
 
         <Typography variant="body1">
-          I&apos;m a senior software engineer focused on observability, reliability, and developer
-          experience. I design and ship tools that help teams see what their systems are doing, in
-          production, in real time.
+          I&apos;m a senior software engineer focused on delivering a great user experience. I
+          design and ship tools that help teams see what their systems are doing, in production, in
+          real time.
           <br />
-          <br />I also do audio engineering: drum recording, vocal cleanup, mix work, and general
-          “make it sound like a record instead of a demo” energy.
+          <br />I also have a certificate in Audio Engineering Principals. I focus on drum
+          recordings, mixing, vocal narration, and voice acting. Contact me for more information!
         </Typography>
       </Box>
     </Box>

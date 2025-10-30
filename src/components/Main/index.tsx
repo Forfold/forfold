@@ -1,4 +1,4 @@
-import { type ReactNode, Suspense, type SyntheticEvent, useState } from 'react'
+import { type ReactNode, Suspense, type SyntheticEvent, useState, useRef } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Tabs, Tab } from '@mui/material'
 import { styled, ThemeProvider } from '@mui/material/styles'
@@ -57,6 +57,7 @@ const StyledTab = styled((props: { label: string; value: number }) => (
 
 export function App() {
   const [value, setValue] = useState(0)
+  const borderRef = useRef<HTMLDivElement | null>(null)
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
@@ -65,14 +66,17 @@ export function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+
       <Box sx={{ height: '100%', position: 'relative', padding: '2%', pb: 4 }}>
         <Box
           id="border-box"
+          ref={borderRef}
           sx={{
             height: '100%',
+            width: '100%',
             position: 'relative',
             border: '0.1px solid white',
-            overflow: 'auto',
+            overflow: 'hidden', // clip fish
           }}
         >
           {/* right side tabs */}
@@ -84,6 +88,7 @@ export function App() {
               [theme.breakpoints.down('lg')]: {
                 position: 'relative',
               },
+              zIndex: 3, // keep tabs above fish
             })}
           >
             <StyledTabs value={value} onChange={handleChange}>
@@ -95,7 +100,7 @@ export function App() {
           </Box>
 
           {/* main content */}
-          <Box sx={{ mr: '21%' }}>
+          <Box sx={{ mr: '21%', position: 'relative', zIndex: 2 }}>
             <Box id="content-container" sx={{ height: '100%', m: 2 }}>
               <Suspense fallback={<div>Loading...</div>}>
                 {value === 0 && <Home />}
@@ -106,7 +111,9 @@ export function App() {
             </Box>
           </Box>
 
-          <Footer />
+          <Box sx={{ position: 'relative', zIndex: 3 }}>
+            <Footer />
+          </Box>
         </Box>
       </Box>
     </ThemeProvider>
