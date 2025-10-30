@@ -1,7 +1,6 @@
-import React from 'react'
 import { Box, Typography } from '@mui/material'
 
-export default function Footer() {
+export function Footer() {
   return (
     <Box sx={{ position: 'fixed', bottom: 8, right: '2%' }}>
       <Typography variant="caption" sx={{ textAlign: 'end' }}>

@@ -1,15 +1,16 @@
-import React, { Suspense } from 'react'
+import { type ReactNode, Suspense, type SyntheticEvent, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Tabs, Tab } from '@mui/material'
 import { styled, ThemeProvider } from '@mui/material/styles'
-import { theme } from './theme'
-import Footer from './Footer'
+import { theme } from '../theme'
+import { Footer } from './Footer'
+import About from '../About'
 
 const StyledTabs = styled(
   (props: {
-    children?: React.ReactNode
+    children?: ReactNode
     value: number
-    onChange: (event: React.SyntheticEvent, newValue: number) => void
+    onChange: (event: SyntheticEvent, newValue: number) => void
   }) => (
     <Tabs
       orientation="vertical"
@@ -51,8 +52,8 @@ const StyledTab = styled((props: { label: string; value: number }) => (
   },
 }))
 
-export default function App() {
-  const [value, setValue] = React.useState(0)
+export function App() {
+  const [value, setValue] = useState(0)
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
@@ -94,7 +95,7 @@ export default function App() {
                 {/* {value === 0 && <Home />} */}
                 {/* {value === 1 && <Engineerng />} */}
                 {/* {value === 2 && <Audio />} */}
-                {/* {value === 3 && <About />} */}
+                {value === 3 && <About />}
               </Suspense>
             </Box>
           </Box>
