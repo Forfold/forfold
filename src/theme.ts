@@ -11,9 +11,7 @@ export const theme = createTheme({
     },
 
     secondary: {
-      main: '#FFFFFF',
-      // main: '#889F93', // muted green-gray card
-      // contrastText: '#FEFDF7', // the card text in that block is light
+      main: '#889F93', // same as bg default
     },
 
     // Warm parchment card tone

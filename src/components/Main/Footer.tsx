@@ -1,19 +1,21 @@
-import { Box, Typography } from '@mui/material'
+import { Box } from '@mui/material'
+import { Button } from '../StyledComponents/Button'
 
 export function Footer() {
   return (
-    <Box sx={{ position: 'fixed', bottom: 6, right: '3%', color: 'black' }}>
-      <Typography variant="caption" sx={{ textAlign: 'end' }}>
-        Contact me at{' '}
-        <a
-          href="mailto:prod.forfold@gmail.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{ color: 'black' }}
-        >
-          prod.forfold@gmail.com
-        </a>
-      </Typography>
+    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, pt: 3.5 }}>
+      <Button href="sms:+16128393536">Text Me</Button>
+      <Button href="tel:+16128393536">Call Me</Button>
+      <Button href="mailto:prod.forfold@gmail.com" target="_blank" rel="noopener noreferrer">
+        Email Me
+      </Button>
+      <Button
+        href="https://www.linkedin.com/in/nathanieljcook/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        My LinkedIn
+      </Button>
     </Box>
   )
 }

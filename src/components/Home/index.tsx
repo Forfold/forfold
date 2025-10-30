@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material'
 import { ProfilePhoto } from '../ProfilePhoto'
+import { Footer } from '../Main/Footer'
 
 export default function Home() {
   return (
@@ -46,6 +47,8 @@ export default function Home() {
           for more information!
         </Typography>
       </Box>
+
+      <Footer />
     </Box>
   )
 }

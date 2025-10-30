@@ -1,5 +1,7 @@
 import { Box, Link, SxProps, Typography } from '@mui/material'
 import { ProfilePhoto } from '../ProfilePhoto'
+import { Button } from '../StyledComponents/Button'
+import { Footer } from '../Main/Footer'
 
 export function Engineering() {
   return (
@@ -33,14 +35,12 @@ export function Engineering() {
           miscellaneous tools.
         </Typography>
 
-        <Typography sx={{ pb: 1.5 }}>
+        <Typography>
           I love working with React, and I thrive in small team environments working with Agile or
           Kanban methodologies to quickly make decisions and deliver quality code.
         </Typography>
 
-        <Link href="https://www.linkedin.com/in/nathanieljcook/" target="_blank">
-          My LinkedIn ↗️
-        </Link>
+        <Footer />
       </Box>
     </Box>
   )
