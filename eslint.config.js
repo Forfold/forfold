@@ -104,11 +104,6 @@ export default [
       ],
 
       //
-      // prefer function declarations over const fn = () => {}
-      //
-      'func-style': ['error', 'declaration', { allowArrowFunctions: false }],
-
-      //
       // React tweaks
       //
       'react/react-in-jsx-scope': 'off', // not needed w/ React 17+

@@ -1,13 +1,9 @@
 import React, { Suspense } from 'react'
-import CssBaseline from '@mui/material/CssBaseline' // keep this import first
+import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Tabs, Tab, Typography } from '@mui/material'
 import { styled, ThemeProvider } from '@mui/material/styles'
 import { theme } from './theme'
-// import GDrivePortfolio from './GDrivePortfolio'
-// import GitHubProfile from './GitHubProfile'
-import SoundCloudFrames from './SoundCloudFrames'
 import Footer from './Footer'
-import BassistAd from './BassistAd'
 
 const StyledTabs = styled(
   (props: {
@@ -93,7 +89,7 @@ export default function App() {
                 sx={{
                   fontVariant: 'small-caps',
                   width: '100%',
-                  textAlign: 'end',
+                  // textAlign: 'end',
                   pr: 3.5,
                   pt: 1.5,
                 }}
@@ -103,17 +99,18 @@ export default function App() {
             ) : null}
             <StyledTabs value={value} onChange={handleChange}>
               <StyledTab value={0} label="HOME" />
-              <StyledTab value={1} label="MUSIC" />
-              {/* <StyledTab value={2} label="PHOTOS" /> */}
+              <StyledTab value={1} label="ENGINEERING" />
+              <StyledTab value={2} label="AUDIO" />
+              <StyledTab value={3} label="ABOUT" />
             </StyledTabs>
           </Box>
           <Box sx={{ mr: '21%' }}>
             <Box id="content-container" sx={{ height: '100%', m: 2 }}>
               <Suspense fallback={<div>Loading...</div>}>
-                {/* {value === 0 && <GitHubProfile />} */}
-                {value === 0 && <BassistAd />}
-                {value === 1 && <SoundCloudFrames />}
-                {/* {value === 2 && <GDrivePortfolio />} */}
+                {/* {value === 0 && <Home />} */}
+                {/* {value === 1 && <Engineerng />} */}
+                {/* {value === 2 && <Audio />} */}
+                {/* {value === 3 && <About />} */}
               </Suspense>
             </Box>
           </Box>
