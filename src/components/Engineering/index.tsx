@@ -52,7 +52,7 @@ export function Engineering() {
         <br />
 
         <Link href="https://www.linkedin.com/in/nathanieljcook/" target="_blank">
-          My LinkedIn
+          My LinkedIn ↗️
         </Link>
       </Box>
     </Box>
