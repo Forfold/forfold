@@ -1,10 +1,10 @@
-import avatarSrc from '../assets/avatar.jpg'
+import avatarSrc from '/assets/avatar.jpg'
 import { Avatar } from '@mui/material'
 
 export function ProfilePhoto() {
   return (
     <Avatar
-      src={avatarSrc}
+      src={`${import.meta.env.BASE_URL}assets/avatar.jpg`}
       alt="Profile photo"
       sx={(theme) => ({
         width: 200,
