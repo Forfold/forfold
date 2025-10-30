@@ -11,21 +11,21 @@ import BassistAd from './BassistAd'
 
 const StyledTabs = styled(
   (props: {
-    children?: React.ReactNode;
-    value: number;
-    onChange: (event: React.SyntheticEvent, newValue: number) => void;
+    children?: React.ReactNode
+    value: number
+    onChange: (event: React.SyntheticEvent, newValue: number) => void
   }) => (
     <Tabs
-      orientation='vertical'
+      orientation="vertical"
       {...props}
       TabIndicatorProps={{
         children: <span className="MuiTabs-indicatorSpan" />,
       }}
     />
-  ),
+  )
 )({
   '& .MuiTabs-flexContainer': {
-    alignItems: 'end'
+    alignItems: 'end',
   },
   '& .MuiTabs-indicator': {
     display: 'flex',
@@ -39,7 +39,7 @@ const StyledTabs = styled(
   },
 })
 
-const StyledTab = styled((props: { label: string, value: number }) => (
+const StyledTab = styled((props: { label: string; value: number }) => (
   <Tab disableRipple {...props} />
 ))(({ theme }) => ({
   textTransform: 'none',
@@ -66,38 +66,49 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Box sx={{ height: '100%', position: 'relative', padding: '2%', pb: 4 }}>
-        <Box id='border-box' sx={{ height: '100%', position: 'relative', border: '0.1px solid white', overflow: 'auto' }}>
+        <Box
+          id="border-box"
+          sx={{
+            height: '100%',
+            position: 'relative',
+            border: '0.1px solid white',
+            overflow: 'auto',
+          }}
+        >
           <Box
-            id='sidebar'
+            id="sidebar"
             sx={(theme) => ({
               position: 'fixed',
               right: '2%',
               [theme.breakpoints.down('lg')]: {
-                position: 'relative'
-              }
+                position: 'relative',
+              },
             })}
           >
             {value != 0 ? (
               <Typography
-                variant='h3'
-                component='h1'
+                variant="h3"
+                component="h1"
                 // padding makes up for tab width
-                sx={{ fontVariant: 'small-caps', width: '100%', textAlign: 'end', pr: 3.5, pt: 1.5 }}
+                sx={{
+                  fontVariant: 'small-caps',
+                  width: '100%',
+                  textAlign: 'end',
+                  pr: 3.5,
+                  pt: 1.5,
+                }}
               >
-              Nathaniel Cook
+                Nathaniel Cook
               </Typography>
             ) : null}
-            <StyledTabs
-              value={value}
-              onChange={handleChange}
-            >
+            <StyledTabs value={value} onChange={handleChange}>
               <StyledTab value={0} label="HOME" />
               <StyledTab value={1} label="MUSIC" />
               {/* <StyledTab value={2} label="PHOTOS" /> */}
             </StyledTabs>
           </Box>
           <Box sx={{ mr: '21%' }}>
-            <Box id='content-container' sx={{ height: '100%', m: 2 }}>
+            <Box id="content-container" sx={{ height: '100%', m: 2 }}>
               <Suspense fallback={<div>Loading...</div>}>
                 {/* {value === 0 && <GitHubProfile />} */}
                 {value === 0 && <BassistAd />}

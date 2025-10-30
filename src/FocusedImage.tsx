@@ -1,19 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import Dialog from '@mui/material/Dialog'
 import Typography from '@mui/material/Typography'
-import { Image } from './GDrivePortfolio'
+import { type Image } from './GDrivePortfolio'
 import Toolbar from '@mui/material/Toolbar'
 import IconButton from '@mui/material/IconButton'
 import DialogContent from '@mui/material/DialogContent'
 import CloseIcon from '@mui/icons-material/Close'
 
 interface FocusedImageProps {
-  open: boolean;
-  onClose: () => void;
+  open: boolean
+  onClose: () => void
   focusedImage: {
-    fileName: string;
-    thumbnail: string;
-  };
+    fileName: string
+    thumbnail: string
+  }
 }
 
 export default function FocusedImage(props: FocusedImageProps) {
@@ -50,7 +50,7 @@ export default function FocusedImage(props: FocusedImageProps) {
           function (reason) {
             setError(reason.result.error.message)
             setLoading(false)
-          },
+          }
         )
     })
   }
@@ -88,10 +88,7 @@ export default function FocusedImage(props: FocusedImageProps) {
           {loading ? (
             <img src={thumbnail} style={imageStyle} />
           ) : (
-            <img
-              src={`https://drive.google.com/uc?export=view&id=${imageID}`}
-              style={imageStyle}
-            />
+            <img src={`https://drive.google.com/uc?export=view&id=${imageID}`} style={imageStyle} />
           )}
 
           {error && <Typography>{error}</Typography>}

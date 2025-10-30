@@ -3,11 +3,11 @@ import { Grid, Typography } from '@mui/material'
 import FocusedImage from './FocusedImage'
 
 export type Image = {
-  id: string;
-  thumbnailLink: string;
-  embedLink: string;
-  originalFilename: string;
-};
+  id: string
+  thumbnailLink: string
+  embedLink: string
+  originalFilename: string
+}
 
 const defaultValue = {
   fileName: '',
@@ -17,8 +17,8 @@ const defaultValue = {
 export default function GDrivePortfolio() {
   const [images, setImages] = useState<Array<Image>>([])
   const [focusedImage, setFocusedImage] = useState<{
-    fileName: string;
-    thumbnail: string;
+    fileName: string
+    thumbnail: string
   }>(defaultValue)
   const [pageToken, setPageToken] = useState<string>()
   const [error, setError] = useState<string>()
@@ -35,9 +35,7 @@ export default function GDrivePortfolio() {
               path: '/drive/v2/files',
               method: 'GET',
               params: {
-                q: `'${
-                  import.meta.env.VITE_REACT_APP_PORTFOLIO_THUMBNAILS_ID
-                }' in parents`,
+                q: `'${import.meta.env.VITE_REACT_APP_PORTFOLIO_THUMBNAILS_ID}' in parents`,
                 orderBy: 'title',
                 pageToken,
               },
@@ -52,7 +50,7 @@ export default function GDrivePortfolio() {
             },
             function (reason) {
               setError(reason.result.error.message)
-            },
+            }
           )
       })
     }
