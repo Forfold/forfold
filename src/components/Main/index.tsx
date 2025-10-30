@@ -2,9 +2,12 @@ import { type ReactNode, Suspense, type SyntheticEvent, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Tabs, Tab } from '@mui/material'
 import { styled, ThemeProvider } from '@mui/material/styles'
-import { theme } from '../theme'
+import { theme } from '../../theme'
 import { Footer } from './Footer'
-import About from '../About'
+import { About } from '../About'
+import { Audio } from '../Audio'
+import { Engineering } from '../Engineering'
+import Home from '../Home'
 
 const StyledTabs = styled(
   (props: {
@@ -72,6 +75,7 @@ export function App() {
             overflow: 'auto',
           }}
         >
+          {/* right side tabs */}
           <Box
             id="sidebar"
             sx={(theme) => ({
@@ -89,16 +93,19 @@ export function App() {
               <StyledTab value={3} label="ABOUT" />
             </StyledTabs>
           </Box>
+
+          {/* main content */}
           <Box sx={{ mr: '21%' }}>
             <Box id="content-container" sx={{ height: '100%', m: 2 }}>
               <Suspense fallback={<div>Loading...</div>}>
-                {/* {value === 0 && <Home />} */}
-                {/* {value === 1 && <Engineerng />} */}
-                {/* {value === 2 && <Audio />} */}
+                {value === 0 && <Home />}
+                {value === 1 && <Engineering />}
+                {value === 2 && <Audio />}
                 {value === 3 && <About />}
               </Suspense>
             </Box>
           </Box>
+
           <Footer />
         </Box>
       </Box>

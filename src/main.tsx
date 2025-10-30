@@ -1,8 +1,8 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import { App } from './Main/index'
+import { App } from './components/Main/index'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import ErrorPage from './Main/ErrorPage'
+import ErrorPage from './components/Main/ErrorPage'
 
 import '@fontsource/roboto/300.css'
 import '@fontsource/roboto/400.css'
