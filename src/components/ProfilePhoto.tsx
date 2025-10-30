@@ -6,11 +6,11 @@ export function ProfilePhoto() {
     <Avatar
       src={avatarSrc}
       alt="Profile photo"
-      sx={{
+      sx={(theme) => ({
         width: 200,
         height: 200,
-        border: '1px solid white',
-      }}
+        border: '2px solid ' + theme.palette.divider,
+      })}
     />
   )
 }

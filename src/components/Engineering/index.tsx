@@ -4,73 +4,41 @@ import React from 'react'
 
 export function Engineering() {
   return (
-    <React.Fragment>
-      <Box
-        sx={{
-          display: { xs: 'none', md: 'flex' },
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          alignItems: 'flex-start',
-          gap: 4,
-        }}
-      >
-        <Box
-          sx={{
-            minWidth: 120,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            gap: 2,
-          }}
-        >
-          <ProfilePhoto />
-        </Box>
-
-        <EngineeringText />
+    <Box
+      sx={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}
+    >
+      <Box sx={{ pb: 2, width: 'fit-content' }}>
+        <ProfilePhoto />
       </Box>
+      <Box sx={{ flex: 1, width: 'fit-content', maxWidth: '750px' }}>
+        <Typography variant="h4" component="h2" sx={{ pb: 2.5, textAlign: 'center' }}>
+          Nathaniel Cook
+        </Typography>
 
-      <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', pb: 2 }}>
-          <ProfilePhoto />
-        </Box>
-        <EngineeringText styleProps={{ textAlign: 'center' }} />
+        <Typography sx={{ pb: 1.5 }}>
+          I am currently working with Target as a senior software engineer on the metrics and
+          logging platform team (Measurement), primarily utilizing React and Typescript.
+        </Typography>
+
+        <Typography sx={{ pb: 1.5 }}>
+          I also have experience in Go, PSQL, Graphql, CI/CD, Kubernetes, Docker, GCP, and other
+          miscellaneous tools.
+        </Typography>
+
+        <Typography sx={{ pb: 1.5 }}>
+          I love working with React, and I thrive in small team environments working with Agile or
+          Kanban methodologies to quickly make decisions and deliver quality code.
+        </Typography>
+
+        <Link href="https://www.linkedin.com/in/nathanieljcook/" target="_blank">
+          My LinkedIn ↗️
+        </Link>
       </Box>
-    </React.Fragment>
-  )
-}
-
-function EngineeringText({ styleProps }: { styleProps?: SxProps }) {
-  return (
-    <Box sx={{ flex: 1 }}>
-      <Typography variant="h4" component="h2" sx={{ pb: 2, ...styleProps }}>
-        Nathaniel Cook
-      </Typography>
-
-      <Typography>
-        I am currently working with Target as a senior software engineer on the metrics and logging
-        platform team (Measurement), primarily utilizing React and Typescript.
-      </Typography>
-
-      <br />
-
-      <Typography>
-        I also have experience in Go, PSQL, Graphql, CI/CD, Kubernetes, Docker, GCP, and other
-        miscellaneous tools.
-      </Typography>
-
-      <br />
-
-      <Typography>
-        I love working with React, and I thrive in small team environments working with Agile or
-        Kanban methodologies to quickly make decisions and deliver quality code.
-      </Typography>
-
-      <br />
-
-      <Link href="https://www.linkedin.com/in/nathanieljcook/" target="_blank">
-        My LinkedIn ↗️
-      </Link>
     </Box>
   )
 }
