@@ -18,11 +18,15 @@ export function ProfilePhoto() {
 
 export function DebugProfilePhoto() {
   return (
-    <div style={{ padding: 16, border: '1px solid red' }}>
+    <div style={{ padding: 16, border: '2px solid red', marginTop: 16 }}>
       <div style={{ fontSize: 12, wordBreak: 'break-all', color: 'red' }}>
-        IMG SRC:
+        IMG SRC (avatarSrc):
         <br />
-        {avatarSrc}
+        <code style={{ fontSize: 11, color: 'red' }}>{avatarSrc}</code>
+      </div>
+
+      <div style={{ marginTop: 8, fontSize: 12, color: '#000' }}>
+        Below is the raw &lt;img&gt; using that same src:
       </div>
 
       <img
