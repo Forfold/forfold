@@ -220,6 +220,7 @@ export function Resume() {
           <WorkOutlineRoundedIcon fontSize="small" />
           <Typography
             variant="h5"
+            component="h2"
             sx={{
               fontWeight: 600,
               fontSize: { xs: '1.125rem', sm: '1.25rem' },
