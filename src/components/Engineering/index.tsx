@@ -1,5 +1,5 @@
 import { Box, Typography } from '@mui/material'
-import { DebugProfilePhoto, ProfilePhoto } from '../ProfilePhoto'
+import { ProfilePhoto } from '../ProfilePhoto'
 import { Footer } from '../Main/Footer'
 
 export function Engineering() {
@@ -16,9 +16,6 @@ export function Engineering() {
         <ProfilePhoto />
       </Box>
 
-      <Box sx={{ pb: 2, width: 'fit-content' }}>
-        <DebugProfilePhoto />
-      </Box>
       <Box sx={{ flex: 1, width: 'fit-content', maxWidth: '750px' }}>
         <Typography
           variant="h3"
