@@ -6,7 +6,7 @@ import { theme } from '../../theme'
 import { About } from '../About'
 import Home from '../Home'
 
-export function App() {
+export function Main() {
   const [value, setValue] = useState(0)
   const borderRef = useRef<HTMLDivElement | null>(null)
 

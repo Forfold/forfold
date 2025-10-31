@@ -1,7 +1,7 @@
 import { Typography } from '@mui/material'
 import { ViewLayout } from '../Main/ViewLayout'
 
-export function Engineering() {
+export function Resume() {
   return (
     <ViewLayout withAvatar withFooter>
       <Typography

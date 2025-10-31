@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
-import { App } from './components/Main/index'
+import { Main } from './components/Main/index'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import ErrorPage from './components/Main/ErrorPage'
 
@@ -12,7 +12,7 @@ import '@fontsource/roboto/700.css'
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
+    element: <Main />,
     errorElement: <ErrorPage />,
   },
 ])
