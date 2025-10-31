@@ -1,6 +1,6 @@
 import { Avatar } from '@mui/material'
 
-const avatarSrc = 'https://forfold.com/assets/avatar.jpg'
+const avatarSrc = 'https://forfold.com/assets/avatar.png'
 
 export function ProfilePhoto() {
   return (
