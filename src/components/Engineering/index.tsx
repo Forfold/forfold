@@ -6,13 +6,13 @@ export function Engineering() {
     <ViewLayout withAvatar withFooter>
       <Typography
         variant="h3"
-        component="h2"
+        component="h1"
         sx={{ pb: 2.5, textAlign: 'center', fontWeight: 'bolder' }}
       >
         Nathaniel Cook
       </Typography>
 
-      <Typography sx={{ pb: 1.5 }}>
+      <Typography component="h2" sx={{ pb: 1.5 }}>
         I am currently working with Target as a senior software engineer on the metrics and logging
         platform team (Measurement), primarily utilizing React and Typescript.
       </Typography>

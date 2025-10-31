@@ -6,12 +6,13 @@ export default function Home() {
     <ViewLayout withAvatar withFooter>
       <Typography
         variant="h3"
-        component="h2"
+        component="h1"
         sx={{ pb: 2.5, textAlign: 'center', fontWeight: 'bolder' }}
       >
         Nathaniel Cook
       </Typography>
-      <Typography variant="h6" component="h3" sx={{ pb: 2.5 }}>
+
+      <Typography variant="h6" component="h2" sx={{ pb: 2.5 }}>
         I design, build, and maintain complex front-end systems and APIs — and I produce and edit
         audio.
       </Typography>

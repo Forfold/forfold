@@ -1,15 +1,83 @@
 <!doctype html>
 <html lang="en" style="height: 100%">
   <head>
+    <!-- Favicon / Icons -->
     <link rel="icon" href="/assets/favicon.ico" />
     <link rel="icon" type="image/png" href="/assets/favicon.png" />
 
+    <!-- Optional: iOS/Android homescreen icon -->
+    <link rel="apple-touch-icon" href="/assets/favicon.png" />
+
+    <!-- Charset / Viewport -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Forfold</title>
 
+    <!-- Primary Page Title -->
+    <title>Nathaniel Cook (Forfold) – Front-End UI/UX & Audio Mixing</title>
+
+    <!-- Meta Description (shown in Google results under the title) -->
+    <meta
+      name="description"
+      content="Senior front-end engineer focused on reliability, observability, and developer experience. Also offering remote mixing, drum cleanup, and dialog editing under Forfold."
+    />
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:title" content="Nathaniel Cook / Forfold – Engineering & Audio" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://forfold.com" />
+    <!-- <meta property="og:image" content="https://forfold.com/assets/social-card.jpg" /> -->
+    <!-- TODO: create a 1200x630-ish social-card.jpg and put it in /assets -->
+
+    <!-- Canonical URL (avoids duplicate content issues if you ever add alt hosts) -->
+    <link rel="canonical" href="https://forfold.com/" />
+
+    <!-- Structured data / Knowledge panel help -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Nathaniel Cook",
+        "alternateName": "Forfold",
+        "jobTitle": "Senior Front-End Engineer",
+        "description": "Front-end reliability engineer focused on observability, on-call tooling, and developer experience. Also offers remote audio mixing and edit work.",
+        "url": "https://forfold.com",
+        "knowsAbout": [
+          "frontend performance",
+          "observability and on-call tooling",
+          "React and TypeScript",
+          "audio mixing and vocal cleanup",
+          "drum editing and tightening"
+        ],
+        "sameAs": ["https://github.com/forfold", "https://www.linkedin.com/in/nathanieljcook"],
+        "contactPoint": [
+          {
+            "@type": "ContactPoint",
+            "contactType": "Business inquiries",
+            "email": "prod.forfold@gmail.com"
+          }
+        ]
+      }
+    </script>
+
+    <!-- Basic theming (nice for mobile Chrome address bar, etc.) -->
+    <meta name="theme-color" content="#0b0c10" />
+    <!-- TODO: set this to your background color -->
+
+    <!-- Preload avatar / critical assets if you want -->
+    <!-- This slightly nudges Largest Contentful Paint -->
+    <!--
+    <link
+      rel="preload"
+      href="/assets/avatar.jpg"
+      as="image"
+      type="image/jpeg"
+    />
+    -->
+
+    <!-- Your existing external script -->
     <script type="module" src="https://apis.google.com/js/api.js"></script>
   </head>
+
   <body style="height: inherit">
     <div id="root" style="height: inherit"></div>
     <script type="module" src="./src/main.tsx"></script>

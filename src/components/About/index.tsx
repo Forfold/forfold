@@ -15,6 +15,7 @@ export function About() {
         <Box>
           <Typography
             variant="h2"
+            component="h1"
             sx={(theme) => ({
               fontSize: '1.5rem',
               fontWeight: 600,
@@ -27,7 +28,7 @@ export function About() {
 
           <Typography
             variant="body2"
-            component="h3"
+            component="h2"
             sx={(theme) => ({
               fontSize: '1rem',
               lineHeight: 1.6,
