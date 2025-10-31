@@ -4,8 +4,6 @@ import { Box, Tabs, Tab, Grid, Card, Toolbar, AppBar, Typography } from '@mui/ma
 import { ThemeProvider } from '@mui/material/styles'
 import { theme } from '../../theme'
 import { About } from '../About'
-import { Audio } from '../Audio'
-import { Engineering } from '../Engineering'
 import Home from '../Home'
 
 export function App() {
@@ -74,8 +72,8 @@ export function App() {
                 onChange={handleChange}
               >
                 <Tab value={0} label="HOME" />
-                <Tab value={1} label="ENGINEERING" />
-                <Tab value={2} label="AUDIO" />
+                {/* <Tab value={1} label="ENGINEERING" /> */}
+                {/* <Tab value={2} label="AUDIO" /> */}
                 <Tab value={3} label="ABOUT" />
               </Tabs>
             </Box>
@@ -122,8 +120,8 @@ export function App() {
               <Grid sx={{ m: 4, width: '100%' }}>
                 <Suspense fallback={<div>Loading...</div>}>
                   {value === 0 && <Home />}
-                  {value === 1 && <Engineering />}
-                  {value === 2 && <Audio />}
+                  {/* {value === 1 && <Engineering />} */}
+                  {/* {value === 2 && <Audio />} */}
                   {value === 3 && <About />}
                 </Suspense>
               </Grid>
