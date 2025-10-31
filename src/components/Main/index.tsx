@@ -5,6 +5,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { theme } from '../../theme'
 import { About } from '../About'
 import Home from '../Home'
+import { Resume } from '../Resume'
 
 export function Main() {
   const [value, setValue] = useState(0)
@@ -72,7 +73,7 @@ export function Main() {
                 onChange={handleChange}
               >
                 <Tab value={0} label="HOME" />
-                {/* <Tab value={1} label="ENGINEERING" /> */}
+                <Tab value={1} label="RESUME" />
                 {/* <Tab value={2} label="AUDIO" /> */}
                 <Tab value={3} label="ABOUT" />
               </Tabs>
@@ -120,7 +121,7 @@ export function Main() {
               <Grid sx={{ m: 4, width: '100%' }}>
                 <Suspense fallback={<div>Loading...</div>}>
                   {value === 0 && <Home />}
-                  {/* {value === 1 && <Engineering />} */}
+                  {value === 1 && <Resume />}
                   {/* {value === 2 && <Audio />} */}
                   {value === 3 && <About />}
                 </Suspense>
