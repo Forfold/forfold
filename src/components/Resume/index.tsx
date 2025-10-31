@@ -233,6 +233,8 @@ export function Resume() {
           orientation="vertical"
           nonLinear
           sx={{
+            ml: -0.5,
+
             // hide default connector stub
             '& .MuiStepConnector-line': {
               display: 'none',
