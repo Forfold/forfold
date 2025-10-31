@@ -1,6 +1,6 @@
 import { Avatar } from '@mui/material'
 
-const avatarSrc = `${import.meta.env.BASE_URL}assets/avatar.jpg`
+const avatarSrc = 'https://forfold.com/assets/avatar.jpg'
 
 export function ProfilePhoto() {
   return (
