@@ -11,7 +11,6 @@ export function About() {
           gap: 4,
         }}
       >
-        {/* Intro / headline */}
         <Box>
           <Typography
             variant="h2"
@@ -37,14 +36,13 @@ export function About() {
             })}
           >
             I build front-end experiences, connect and maintain esoteric systems, and help sound
-            feel finished. I’m a senior software engineer, an audio person, and — in my own words —
-            a technological entomologist 👾
+            feel finished. I’m a senior software engineer, an audio person, and as I like to say, a
+            technological entomologist 👾
           </Typography>
         </Box>
 
         <Divider flexItem />
 
-        {/* What I do (engineering + audio) */}
         <Stack spacing={3}>
           <Box>
             <Typography
@@ -67,9 +65,8 @@ export function About() {
               })}
             >
               I work in React, TypeScript, and Go, mostly on observability and reliability tooling.
-              I like taking noisy data (logs, traces, alerts, weird internal APIs), shaping it into
-              something humans can actually read, and giving teams a UI that helps them feel in
-              control instead of on fire.
+              I like taking noisy data (logs, traces, and alerts) and shaping it into a great user
+              experience.
             </Typography>
 
             <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
@@ -117,10 +114,10 @@ export function About() {
                 color: theme.palette.text.secondary,
               })}
             >
-              I record and mix music and spoken word under the name “Forfold.” I care way too much
-              about drum tone, vocal clarity, and trying to make things feel as best they can. I
-              work out of a Focusrite 18i20 chain and with various microphones, such as the well
-              known SM-58, or it’s fancier cousin, the SM7B.
+              I record and mix music under the name “Forfold.” I love drum tone, mixing for vocal
+              clarity, and trying to make things sound and feel as best they can. I work out of a
+              Focusrite 18i20 chain and with various microphones, such as the well known SM-58, as
+              well as its fancier cousin, the SM7B.
             </Typography>
 
             <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 2 }}>
@@ -142,7 +139,6 @@ export function About() {
 
         <Divider flexItem />
 
-        {/* Personality / vibe */}
         <Stack spacing={3}>
           <Box>
             <Typography
@@ -165,9 +161,9 @@ export function About() {
               })}
             >
               I care a lot about details. I refactor components until they’re simple to use and easy
-              to trust. I’ll sit with a snare track for an hour to get the parallel compression
-              sounding just right. I like taking messy systems and making them feel accessible and
-              easy to use. My priorities are stability & clarity.
+              to trust. I’ll sit with a snare track for hours to get the mix sounding just right. I
+              like taking messy systems and making them feel accessible and easy to use. My
+              priorities when shipping code are are stability & clarity.
             </Typography>
           </Box>
 
@@ -195,7 +191,6 @@ export function About() {
 
         <Divider flexItem />
 
-        {/* Projects / things I'm building */}
         <Stack spacing={2}>
           <Typography
             variant="h3"
@@ -268,7 +263,7 @@ export function About() {
                 })}
               >
                 Nathaniel’s two-piece band with the great CJ Linkous, working together to make their
-                debut album, <i>Heron, Over There</i>. More information soon!
+                debut album, <i>Heron, Over There</i>. More information coming soon!
               </Typography>
             </CardContent>
           </Card>
@@ -306,32 +301,6 @@ export function About() {
             </CardContent>
           </Card>
         </Stack>
-
-        {/* Quiet note / human note */}
-        {/* <Divider flexItem />
-        <Box>
-          <Typography
-            variant="h3"
-            sx={(theme) => ({
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              color: theme.palette.text.primary,
-              mb: 1,
-            })}
-          >
-            Off the record
-          </Typography>
-
-          <Typography
-            sx={(theme) => ({
-              fontSize: '0.95rem',
-              lineHeight: 1.6,
-              color: theme.palette.text.secondary,
-            })}
-          >
-            I write a lot of darker poetry. If you’re into that, check it out here.
-          </Typography>
-        </Box> */}
       </Box>
     </ViewLayout>
   )
