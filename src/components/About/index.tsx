@@ -162,8 +162,8 @@ export function About() {
             >
               I care a lot about details. I refactor components until they’re simple to use and easy
               to trust. I’ll sit with a snare track for hours to get the mix sounding just right. I
-              like taking messy systems and making them feel accessible and easy to use. My
-              priorities when shipping code are are stability & clarity.
+              like taking messy systems and making them feel accessible and user friendly. My
+              priorities when shipping code are are stability, clarity, and ease of use.
             </Typography>
           </Box>
 
