@@ -22,7 +22,7 @@ export function ViewLayout(props: ViewLayoutProps) {
         }}
       >
         {props.withAvatar && (
-          <Box sx={{ pb: 2, pt: 2, width: 'fit-content' }}>
+          <Box sx={{ pb: 3, pt: 3, width: 'fit-content' }}>
             <ProfilePhoto />
           </Box>
         )}
