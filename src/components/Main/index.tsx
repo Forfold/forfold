@@ -1,6 +1,6 @@
-import { Suspense, useState, useRef } from 'react'
+import { Suspense, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
-import { Box, Tabs, Tab, Grid, Card, Toolbar, AppBar, Typography } from '@mui/material'
+import { Box, Tabs, Tab, Grid, Toolbar, AppBar, Typography } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { theme } from '../../theme'
 import { About } from '../About'
@@ -9,7 +9,6 @@ import { Resume } from '../Resume'
 
 export function Main() {
   const [value, setValue] = useState(0)
-  const borderRef = useRef<HTMLDivElement | null>(null)
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
@@ -23,11 +22,10 @@ export function Main() {
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          minHeight: '100vh', // full viewport
-          overflow: 'hidden', // stop body from scrolling
+          minHeight: '100vh',
+          overflow: 'hidden',
         }}
       >
-        {/* AppBar at the top */}
         <AppBar>
           <Toolbar
             sx={{
@@ -36,7 +34,7 @@ export function Main() {
               gap: 2,
             }}
           >
-            {/* Logo shows on md+ only */}
+            {/* FORFOLD shows on md+ only */}
             <Typography
               variant="h6"
               noWrap
@@ -82,53 +80,27 @@ export function Main() {
         </AppBar>
 
         {/* Main content area */}
-        <Box
+        <Toolbar />
+
+        <Grid
+          container
+          spacing={2}
           sx={{
             flex: 1, // take remaining vertical space
             display: 'flex',
             flexDirection: 'column',
-            minHeight: 0, // THIS is important: lets children shrink/scroll instead of forcing overflow
+            minHeight: 0, // let children shrink/scroll instead of forcing overflow
             overflow: 'hidden', // prevent this box from causing page scroll
             p: '2%',
           }}
         >
-          {/* This Toolbar accounts for AppBar height so content isn't under it */}
-          <Toolbar />
-
-          {/* Scrollable card */}
-          <Card
-            ref={borderRef}
-            variant="outlined"
-            sx={{
-              borderColor: '#FFFFFF',
-              borderWidth: '2.5px',
-              flex: 1, // fill what's left between toolbar spacer and footer
-              minHeight: 0, // allow internal scroll
-              width: '100%',
-              borderRadius: 8,
-              overflow: 'auto', // internal scrolling happens here
-            }}
-          >
-            <Grid container spacing={2}>
-              <Grid
-                id="sidebar"
-                size={{ xs: 12 }}
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                }}
-              />
-              <Grid sx={{ m: 4, width: '100%' }}>
-                <Suspense fallback={<div>Loading...</div>}>
-                  {value === 0 && <Home />}
-                  {value === 1 && <Resume />}
-                  {/* {value === 2 && <Audio />} */}
-                  {value === 3 && <About />}
-                </Suspense>
-              </Grid>
-            </Grid>
-          </Card>
-        </Box>
+          <Suspense fallback={<div>Loading...</div>}>
+            {value === 0 && <Home />}
+            {value === 1 && <Resume />}
+            {/* {value === 2 && <Audio />} */}
+            {value === 3 && <About />}
+          </Suspense>
+        </Grid>
       </Box>
     </ThemeProvider>
   )
