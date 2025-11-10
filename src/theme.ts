@@ -3,7 +3,6 @@ import { createTheme } from '@mui/material/styles'
 export const theme = createTheme({
   palette: {
     mode: 'light',
-
     primary: {
       main: '#222D31',
       contrastText: '#FEFDF7', // light text on dark surfaces
