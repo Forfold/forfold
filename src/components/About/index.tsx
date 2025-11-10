@@ -1,11 +1,11 @@
 import { Box, Typography, Chip, Stack, Divider, Card, CardContent, Grid } from '@mui/material'
 import { ViewLayout } from '../Main/ViewLayout'
-import { LastFmCard } from '../LastFM/LastFMCard'
+// import { LastFmCard } from '../LastFM/LastFMCard'
 
 export function About() {
   return (
     <Grid container spacing={5} sx={{ height: '100%', alignItems: 'stretch' }}>
-      <Grid size={{ xs: 12, lg: 9 }} sx={{ height: '100%' }}>
+      <Grid size={{ xs: 12 }} sx={{ height: '100%' }}>
         <ViewLayout withAvatar withFooter>
           <Box
             sx={{
@@ -321,9 +321,9 @@ export function About() {
         </ViewLayout>
       </Grid>
 
-      <Grid size={3} sx={{ height: '100%', flex: 1, minHeight: 0, overflowY: 'auto' }}>
+      {/* <Grid size={3} sx={{ height: '100%', flex: 1, minHeight: 0, overflowY: 'auto' }}>
         <LastFmCard limit={20} />
-      </Grid>
+      </Grid> */}
     </Grid>
   )
 }
