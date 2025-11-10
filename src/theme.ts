@@ -1,5 +1,8 @@
 import { createTheme } from '@mui/material/styles'
 
+const beige = '#E2D6B8'
+const brown = '#3D2500'
+
 export const theme = createTheme({
   palette: {
     mode: 'light',
@@ -137,6 +140,26 @@ export const theme = createTheme({
       styleOverrides: {
         rounded: {
           borderRadius: 4,
+        },
+      },
+    },
+
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          backgroundColor: beige,
+          color: brown,
+          border: '1.5px solid ' + brown,
+        },
+      },
+    },
+
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          backgroundColor: beige,
+          color: brown,
+          border: '1px solid ' + brown,
         },
       },
     },
