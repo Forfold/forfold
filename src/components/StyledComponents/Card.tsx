@@ -10,15 +10,16 @@ export function Card(props: StyledCard) {
   return (
     <MuiCard
       variant="outlined"
-      sx={(theme) => ({
-        borderColor: theme.palette.divider,
+      sx={{
         borderWidth: '2.5px',
         flex: 1, // fill what's left between toolbar spacer and footer
         minHeight: 0, // allow internal scroll
         width: '100%',
         borderRadius: 8,
         overflow: 'auto', // internal scrolling happens here
-      })}
+        p: 2,
+        ...props.sx,
+      }}
     >
       {props.children}
     </MuiCard>

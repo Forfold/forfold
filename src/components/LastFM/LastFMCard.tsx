@@ -225,6 +225,8 @@ export function LastFmCard({ limit = 5 }: LastFmCardProps) {
         flexDirection: 'column',
         flex: 1,
         minHeight: 0,
+        maxHeight: '700px',
+        overflow: 'auto',
       }}
     >
       <CardHeader
