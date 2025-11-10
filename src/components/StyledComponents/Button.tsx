@@ -11,14 +11,16 @@ export function Button(props: StyledButtonProps) {
       variant="outlined"
       sx={(theme) => ({
         borderColor: theme.palette.primary.main,
-        color: theme.palette.primary.main,
-        textTransform: 'none',
+        textTransform: 'uppercase',
+        color: '#3D2500',
+        backgroundColor: '#E2D6B8',
+        fontWeight: 800,
         fontSize: '0.8rem',
         px: 2,
         py: 1,
         '&:hover': {
-          borderColor: theme.palette.primary.main,
-          backgroundColor: 'rgba(255,255,255,0.08)',
+          borderColor: '#3D2500',
+          backgroundColor: '#C9BD9D',
         },
       })}
     >

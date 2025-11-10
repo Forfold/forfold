@@ -15,32 +15,30 @@ import type { LastFmRecentTrackResponse, LastFmTrack } from './lastfm.types'
 import { timeAgoFromUnix } from './timeAgo'
 import { Card } from '../StyledComponents/Card'
 
+const USERNAME = 'Auchindoun'
+
 interface LastFmCardProps {
-  username: string // your last.fm username
-  limit?: number // how many recent tracks to show
+  limit?: number
 }
 
-export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
+export function LastFmCard({ limit = 5 }: LastFmCardProps) {
   const [tracks, setTracks] = useState<LastFmTrack[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  // You’ll define this in your Vite env and expose it via import.meta.env
   const apiKey = import.meta.env.VITE_LASTFM_API_KEY as string | undefined
 
   useEffect(() => {
-    // If we don't have an API key, don't even try. (We'll surface an error in render.)
     if (!apiKey) return
 
     const controller = new AbortController()
 
     async function fetchRecent() {
       try {
-        // force string type here so URLSearchParams is happy
         const key = apiKey as string
 
         const params = new URLSearchParams({
           method: 'user.getRecentTracks',
-          user: username,
+          user: USERNAME,
           api_key: key,
           limit: String(limit),
           format: 'json',
@@ -58,7 +56,6 @@ export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
         const json = (await res.json()) as LastFmRecentTrackResponse
         setTracks(json.recenttracks.track)
       } catch (err: unknown) {
-        // Abort is fine, ignore it quietly
         if (
           typeof err === 'object' &&
           err !== null &&
@@ -73,15 +70,10 @@ export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
     }
 
     void fetchRecent()
+    return () => controller.abort()
+  }, [apiKey, limit])
 
-    return () => {
-      controller.abort()
-    }
-  }, [username, apiKey, limit])
-
-  // pick the best album art available from a track
   function getTrackImage(t: LastFmTrack): string | undefined {
-    // last.fm returns array of {#text, size}; last one tends to be biggest
     for (let i = t.image.length - 1; i >= 0; i--) {
       if (t.image[i]['#text']) return t.image[i]['#text']
     }
@@ -91,7 +83,6 @@ export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
   function renderTrackRow(t: LastFmTrack, idx: number) {
     const nowPlaying = t['@attr']?.nowplaying === 'true'
     const playedAgo = nowPlaying ? 'Now playing' : timeAgoFromUnix(t.date?.uts || undefined)
-
     const img = getTrackImage(t)
 
     return (
@@ -116,7 +107,6 @@ export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
             bgcolor: theme.palette.background.default,
           })}
         >
-          {/* fallback icon if no art */}
           <MusicNoteRoundedIcon fontSize="small" />
         </Avatar>
 
@@ -168,7 +158,6 @@ export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
     )
   }
 
-  // derive error message for rendering without triggering the "setState in effect" warning
   const derivedError = !apiKey ? 'Missing Last.fm API key' : error
 
   function renderBody() {
@@ -181,7 +170,6 @@ export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
     }
 
     if (!tracks) {
-      // loading skeleton
       return (
         <Stack spacing={2} sx={{ py: 1 }}>
           {Array.from({ length: limit }).map((_, i) => (
@@ -231,29 +219,23 @@ export function LastFmCard({ username, limit = 5 }: LastFmCardProps) {
   }
 
   return (
-    <Card>
+    <Card
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+      }}
+    >
       <CardHeader
-        avatar={
-          <Avatar
-            sx={(theme) => ({
-              bgcolor: 'transparent',
-              border: `1px solid ${theme.palette.divider}`,
-              color: theme.palette.text.primary,
-              fontSize: '0.8rem',
-              fontWeight: 500,
-            })}
-          >
-            ♫
-          </Avatar>
-        }
         title={
           <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
-            Listening Activity
+            My Listening Activity
           </Typography>
         }
         subheader={
           <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.3 }}>
-            last.fm / {username}
+            last.fm/{USERNAME}
           </Typography>
         }
         sx={{

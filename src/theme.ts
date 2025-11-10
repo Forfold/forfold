@@ -4,60 +4,42 @@ export const theme = createTheme({
   palette: {
     mode: 'light',
 
-    // Dark green / charcoal CTA color
     primary: {
-      main: '#222D31', // button background / strong action
+      main: '#222D31',
       contrastText: '#FEFDF7', // light text on dark surfaces
     },
 
     secondary: {
-      main: '#889F93', // same as bg default
+      main: '#889F93',
     },
 
-    // Warm parchment card tone
     info: {
-      main: '#E8DCC5', // beige stats card background
-      contrastText: '#1F2C31', // dark text on beige
+      main: '#E8DCC5',
+      contrastText: '#1F2C31',
     },
 
-    // Announcement bar (maroon strip)
     warning: {
-      main: '#6F3B3C', // deep maroon banner
-      contrastText: '#FEFDF7', // light text on maroon
+      main: '#6F3B3C',
+      contrastText: '#FEFDF7',
     },
 
     background: {
-      default: '#889F93', // page / hero / navbar background
-      paper: '#E8DCC5', // alt surface card (parchment-style)
+      default: '#FFFFFF',
+      paper: '#E7EDED',
     },
 
     text: {
-      primary: '#1F2C31', // main heading + body copy
-      secondary: 'rgba(31,44,49,0.65)', // subtext / description
-      // inverse: '#FEFDF7', // light-on-dark (CTA text)
+      primary: '#557170',
+      secondary: 'rgba(31,44,49,0.65)',
     },
 
-    divider: '#FFFFFF',
+    divider: '#222D31',
   },
 
-  // Not strictly required, but this matches the soft, rounded card look
   shape: {
     borderRadius: 4,
   },
 
-  // Optional extras you can reference manually, e.g. theme.palette.custom.sageBg
-  // custom: {
-  //   sageBg: '#889F93', // left card background
-  //   parchmentBg: '#E8DCC5', // middle card background
-  //   frameBg: '#E8E8E8', // page gutter / app chrome outside main card
-  //   bannerBg: '#6F3B3C', // promo strip
-  //   pageBg: '#FEFDF7', // main page surface
-  //   headline: '#1F2C31', // hero serif color
-  //   ctaBg: '#222D31', // CTA button fill
-  //   ctaText: '#FEFDF7', // CTA button label
-  // },
-
-  // Typography isn’t color, but wiring colors here is nice
   typography: {
     // Body / nav / buttons / form labels
     fontFamily: [
@@ -81,9 +63,6 @@ export const theme = createTheme({
         'Times New Roman',
         'serif',
       ].join(','),
-      fontWeight: 500,
-      color: '#1F2C31',
-      lineHeight: 1.1,
     },
     h2: {
       fontFamily: [
@@ -94,9 +73,6 @@ export const theme = createTheme({
         'Times New Roman',
         'serif',
       ].join(','),
-      fontWeight: 500,
-      color: '#1F2C31',
-      lineHeight: 1.15,
     },
     h3: {
       fontFamily: [
@@ -107,9 +83,6 @@ export const theme = createTheme({
         'Times New Roman',
         'serif',
       ].join(','),
-      fontWeight: 500,
-      color: '#1F2C31',
-      lineHeight: 1.2,
     },
 
     // Normal paragraph text (“CareSync helps adults over 45…”)
@@ -123,10 +96,6 @@ export const theme = createTheme({
         'Arial',
         'sans-serif',
       ].join(','),
-      fontWeight: 400,
-      fontSize: '1rem',
-      lineHeight: 1.5,
-      color: 'rgba(31,44,49,0.85)',
     },
 
     // Supporting / caption-ish (“Seamless communication…”, “4/5 star”)
@@ -140,10 +109,6 @@ export const theme = createTheme({
         'Arial',
         'sans-serif',
       ].join(','),
-      fontWeight: 400,
-      fontSize: '0.875rem',
-      lineHeight: 1.4,
-      color: 'rgba(31,44,49,0.65)',
     },
 
     button: {
@@ -156,27 +121,10 @@ export const theme = createTheme({
         'Arial',
         'sans-serif',
       ].join(','),
-      textTransform: 'none',
-      fontWeight: 500,
-      color: '#FEFDF7',
-      lineHeight: 1.3,
     },
   },
 
   components: {
-    // Example: make <Button color="primary" /> look like that dark CTA
-    MuiButton: {
-      styleOverrides: {
-        containedPrimary: {
-          backgroundColor: '#222D31',
-          color: '#FEFDF7',
-          '&:hover': {
-            backgroundColor: '#1F2C31',
-          },
-        },
-      },
-    },
-
     MuiTab: {
       defaultProps: {
         sx: {
@@ -190,9 +138,6 @@ export const theme = createTheme({
       styleOverrides: {
         rounded: {
           borderRadius: 4,
-        },
-        outlined: {
-          borderColor: '#E8E8E8',
         },
       },
     },
