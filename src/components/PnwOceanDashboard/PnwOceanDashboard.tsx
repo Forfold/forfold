@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
 import {
@@ -19,8 +19,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
-  Slider,
   CircularProgress,
+  TextField,
 } from '@mui/material'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import {
@@ -40,7 +40,7 @@ import { fetchCoopsObs, fetchCoopsPred, fetchNdbc } from './data'
 import { clampDate, formatRangeLabel, lttb, mergeResidual, toISO, toSeriesTuples } from './utils'
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const HOUR_MS = 60 * 60 * 1000
+const DATE_RANGE_WINDOW_DAYS = 30
 
 const stationMeta = new Map(STATIONS.map((station) => [station.id, station]))
 
@@ -245,15 +245,39 @@ function buildLineOption({
 
 const EMPTY_SERIES_MSG = 'No data in range.'
 
-export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
-  const defaults = computeDefaultRange(props)
-  const domainStart = defaults.domainStart
-  const domainEnd = defaults.domainEnd
+function formatDateTimeLocalInput(date: Date) {
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
 
+function parseDateTimeLocalInput(value: string) {
+  if (!value) return undefined
+  const [datePart, timePart] = value.split('T')
+  if (!datePart || !timePart) return undefined
+  const [year, month, day] = datePart.split('-').map((segment) => Number(segment))
+  const [hour, minute] = timePart.split(':').map((segment) => Number(segment))
+  if ([year, month, day, hour, minute].some((segment) => Number.isNaN(segment))) return undefined
+  return new Date(year, (month ?? 1) - 1, day ?? 1, hour ?? 0, minute ?? 0)
+}
+
+export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
   const [range, setRange] = useState<{ start: Date; end: Date }>(() => {
     const initial = computeDefaultRange(props)
-    return { start: initial.start, end: initial.end }
+    const now = new Date()
+    const minDate = new Date(now.getTime() - DATE_RANGE_WINDOW_DAYS * DAY_MS)
+    return {
+      start: clampDate(initial.start, minDate, now),
+      end: clampDate(initial.end, minDate, now),
+    }
   })
+
+  const pickerMaxDate = new Date()
+  const pickerMinDate = new Date(pickerMaxDate.getTime() - DATE_RANGE_WINDOW_DAYS * DAY_MS)
   const rangeSlider = useMemo<SliderRange>(
     () => [range.start.getTime(), range.end.getTime()],
     [range.start, range.end]
@@ -321,18 +345,22 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
     return mergeResidual(estuaryObsFiltered, estuaryPredQuery.data)
   }, [estuaryObsFiltered, estuaryPredQuery.data])
 
-  const brushMarks = useMemo(
-    () => [domainStart.getTime(), domainEnd.getTime()],
-    [domainStart, domainEnd]
-  )
-
-  const handleBrushChange = (_event: Event, value: number | number[]) => {
-    if (!Array.isArray(value)) return
-    const [startValue, endValue] = value
-    if (typeof startValue !== 'number' || typeof endValue !== 'number') return
-    if (endValue - startValue < 6 * HOUR_MS) return
-    setRange({ start: new Date(startValue), end: new Date(endValue) })
-  }
+  const handleDateFieldChange =
+    (field: 'start' | 'end') => (event: ChangeEvent<HTMLInputElement>) => {
+      const nextValue = parseDateTimeLocalInput(event.target.value)
+      if (!nextValue) return
+      const clampedValue = clampDate(nextValue, pickerMinDate, pickerMaxDate)
+      setRange((prev) => {
+        if (field === 'start') {
+          const nextStart = clampedValue
+          const nextEnd = prev.end < nextStart ? nextStart : prev.end
+          return { start: nextStart, end: nextEnd }
+        }
+        const nextEnd = clampedValue
+        const nextStart = prev.start > nextEnd ? nextEnd : prev.start
+        return { start: nextStart, end: nextEnd }
+      })
+    }
 
   const waveSeries = useMemo(() => {
     const result: Record<string, { WVHT: TimePoint[]; DPD: TimePoint[]; WSPD: TimePoint[] }> = {}
@@ -525,23 +553,57 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
         <Grid size={{ xs: 12, md: 4 }}>
           {/* Controls */}
           <Card variant="outlined">
-            <CardHeader title="Controls" subheader={formatRangeLabel(range.start, range.end)} />
+            <CardHeader
+              title="Controls"
+              subheader={formatRangeLabel(range.start, range.end)}
+              action={
+                loading ? (
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <CircularProgress size={18} />
+                    <Typography variant="body2">Refreshing NOAA feeds…</Typography>
+                  </Stack>
+                ) : undefined
+              }
+              sx={{
+                alignItems: { xs: 'flex-start', md: 'center' },
+                flexDirection: { xs: 'column', md: 'row' },
+                '& .MuiCardHeader-action': {
+                  alignSelf: { xs: 'flex-start', md: 'center' },
+                  marginTop: { xs: 1, md: 0 },
+                  marginRight: 0,
+                },
+              }}
+            />
             <CardContent>
               <Stack spacing={2}>
                 <Box>
-                  <FormLabel>Time Brush (last {MAX_HISTORY_DAYS} days)</FormLabel>
-                  <Slider
-                    value={rangeSlider}
-                    onChange={handleBrushChange}
-                    valueLabelDisplay="auto"
-                    valueLabelFormat={(value) => new Date(value).toLocaleString()}
-                    min={domainStart.getTime()}
-                    max={domainEnd.getTime()}
-                    step={HOUR_MS}
-                    disableSwap
-                    marks={brushMarks.map((mark) => ({ value: mark }))}
-                    sx={{ mt: 2 }}
-                  />
+                  <FormLabel>Time Range (last {DATE_RANGE_WINDOW_DAYS} days)</FormLabel>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
+                    <TextField
+                      label="From"
+                      type="datetime-local"
+                      value={formatDateTimeLocalInput(range.start)}
+                      onChange={handleDateFieldChange('start')}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      inputProps={{
+                        min: formatDateTimeLocalInput(pickerMinDate),
+                        max: formatDateTimeLocalInput(pickerMaxDate),
+                      }}
+                    />
+                    <TextField
+                      label="To"
+                      type="datetime-local"
+                      value={formatDateTimeLocalInput(range.end)}
+                      onChange={handleDateFieldChange('end')}
+                      InputLabelProps={{ shrink: true }}
+                      fullWidth
+                      inputProps={{
+                        min: formatDateTimeLocalInput(pickerMinDate),
+                        max: formatDateTimeLocalInput(pickerMaxDate),
+                      }}
+                    />
+                  </Stack>
                 </Box>
 
                 <StationPicker value={selectedStations} onChange={setSelectedStations} />
@@ -583,12 +645,6 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
         <Grid size={{ xs: 12, md: 8 }}>
           <Stack spacing={2}>
             {firstErrorMessage && <Alert severity="error">{firstErrorMessage}</Alert>}
-            {loading && (
-              <Stack direction="row" spacing={1} alignItems="center">
-                <CircularProgress size={18} />
-                <Typography variant="body2">Refreshing NOAA feeds…</Typography>
-              </Stack>
-            )}
 
             <Card variant="outlined">
               <CardHeader title="Bar Conditions" subheader="Wave + wind" />
