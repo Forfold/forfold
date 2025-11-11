@@ -22,11 +22,7 @@ import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlin
 import type { DatumCode } from '../types'
 import { DATUM_OPTIONS } from '../constants'
 import { DATE_RANGE_WINDOW_DAYS, useDashboardControls } from '../ControlsContext'
-import {
-  ESTUARY_STATION_OPTIONS,
-  NDBC_STATION_OPTIONS,
-  stripProviderSuffix,
-} from '../stationInfo'
+import { ESTUARY_STATION_OPTIONS, NDBC_STATION_OPTIONS, stripProviderSuffix } from '../stationInfo'
 import { formatDateTimeLocalInput } from '../utils'
 
 export type PanelCoverageStatus = 'ready' | 'caution' | 'blocked'

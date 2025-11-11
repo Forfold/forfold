@@ -1,12 +1,5 @@
 import { type ChangeEvent } from 'react'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Card, CardContent, CardHeader, CircularProgress, Stack, Typography } from '@mui/material'
 import { DashboardControls, type PanelCoverageEntry } from './DashboardControls'
 
 type DashboardControlsPanelProps = {

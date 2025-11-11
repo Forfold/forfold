@@ -63,9 +63,12 @@ function useProvideControls(initialProps: PnwOceanDashboardProps): ControlsConte
   })
 
   const [barPanels, setBarPanels] = useState<string[]>(() => {
-    const defaults = initialProps.defaultStations ?? PICKER_DEFAULTS
+    const hasCustomDefaults = Boolean(initialProps.defaultStations?.length)
+    const defaults = hasCustomDefaults ? initialProps.defaultStations! : PICKER_DEFAULTS
     const buoys = defaults.filter((stationId) => stationMeta.get(stationId)?.provider === 'NDBC')
-    if (buoys.length) return buoys
+    if (buoys.length) {
+      return hasCustomDefaults ? buoys : buoys.slice(0, 1)
+    }
     return BAR_PANEL_DEFAULTS.slice(0, 1)
   })
 

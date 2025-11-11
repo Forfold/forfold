@@ -8,11 +8,7 @@ type MapCardProps = {
   children?: ReactNode
 }
 
-export function MapCard({
-  title = 'Map',
-  subheader = 'Coming soon',
-  children,
-}: MapCardProps) {
+export function MapCard({ title = 'Map', subheader = 'Coming soon', children }: MapCardProps) {
   return (
     <ChartCard header={{ title, subheader }}>
       {children ?? (
