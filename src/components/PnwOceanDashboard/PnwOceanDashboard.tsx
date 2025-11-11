@@ -1,4 +1,4 @@
-import { type ChangeEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
 import {
@@ -8,27 +8,34 @@ import {
   CardContent,
   CardHeader,
   Checkbox,
-  Divider,
+  Chip,
+  CircularProgress,
   FormControl,
   FormControlLabel,
   FormGroup,
+  FormHelperText,
   FormLabel,
   Grid,
+  IconButton,
+  Radio,
+  RadioGroup,
   Stack,
   Switch,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
+  Tooltip,
   Typography,
-  CircularProgress,
-  TextField,
 } from '@mui/material'
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import {
   BAR_PANEL_DEFAULTS,
   DATUM_OPTIONS,
   DEFAULT_DATUM,
   DEFAULT_HISTORY_DAYS,
-  ESTUARY_STATION,
+  ESTUARY_DATUM_CAPABLE,
   MAX_HISTORY_DAYS,
   PICKER_DEFAULTS,
   STATIONS,
@@ -36,13 +43,61 @@ import {
   CRD_SUPPORTED_STATIONS,
 } from './constants'
 import type { DatumCode, NdbcRow, PnwOceanDashboardProps, TimePoint } from './types'
-import { fetchCoopsObs, fetchCoopsPred, fetchNdbc } from './data'
+import { fetchCoopsObs, fetchCoopsPred, fetchNdbc, NdbcFetchError } from './data'
 import { clampDate, formatRangeLabel, lttb, mergeResidual, toISO, toSeriesTuples } from './utils'
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const DATE_RANGE_WINDOW_DAYS = 30
+const DATE_RANGE_WINDOW_DAYS = MAX_HISTORY_DAYS
 
 const stationMeta = new Map(STATIONS.map((station) => [station.id, station]))
+const NDBC_STATION_OPTIONS = STATIONS.filter((station) => station.provider === 'NDBC')
+const ESTUARY_STATION_OPTIONS = STATIONS.filter((station) => station.provider === 'COOPS_OBS')
+
+const BUOY_COLOR_PALETTE = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
+const BUOY_PANEL_COLORS = ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4']
+const CHART_CARD_SX = {
+  display: 'flex',
+  flexDirection: 'column',
+  height: '100%',
+  width: '100%',
+} as const
+const CHART_CARD_CONTENT_SX = { flexGrow: 1, display: 'flex', flexDirection: 'column' } as const
+
+type PanelCoverageStatus = 'ready' | 'caution' | 'blocked'
+
+type PanelCoverageEntry = {
+  id: 'bar' | 'estuary' | 'upriver'
+  label: string
+  status: PanelCoverageStatus
+  message: string
+}
+
+const GRAPH_UNIT_TOOLTIPS: Record<DatumCode, string> = {
+  MLLW: 'Mean Lower Low Water: standard NOAA tidal reference along the coast.',
+  NAVD88: 'North American Vertical Datum 1988: stable inland elevation baseline.',
+  CRD: 'Columbia River Datum: CO-OPS vertical reference for upriver predictions.',
+}
+
+function describeStation(stationId: string) {
+  return stationMeta.get(stationId)?.label ?? stationId
+}
+
+function formatDashboardError(error: unknown) {
+  if (!error) return undefined
+  if (error instanceof NdbcFetchError) {
+    const detail = error.attemptSummary
+      ? `Proxy attempts failed (${error.attemptSummary}).`
+      : 'All proxy attempts failed.'
+    return `Can't reach NDBC feed for ${describeStation(error.stationId)}. ${detail} Try refreshing or temporarily deselecting that buoy.`
+  }
+  if (error instanceof Error) {
+    return error.message
+  }
+  if (typeof error === 'string') {
+    return error
+  }
+  return undefined
+}
 
 function computeDefaultRange(props: PnwOceanDashboardProps) {
   const end = props.endISO ? new Date(props.endISO) : new Date()
@@ -101,7 +156,7 @@ function EChartCanvas({ option, height }: EChartCanvasProps) {
   return <Box ref={containerRef} sx={{ width: '100%', height }} />
 }
 
-function StationPicker({
+function BarStationSelector({
   value,
   onChange,
 }: {
@@ -109,16 +164,19 @@ function StationPicker({
   onChange: (next: string[]) => void
 }) {
   const handleToggle = (stationId: string) => {
-    onChange(
-      value.includes(stationId) ? value.filter((id) => id !== stationId) : [...value, stationId]
-    )
+    const next = value.includes(stationId)
+      ? value.filter((id) => id !== stationId)
+      : [...value, stationId]
+    onChange(next)
   }
 
   return (
     <FormControl component="fieldset" variant="standard">
-      <FormLabel component="legend">Stations</FormLabel>
+      <FormLabel component="legend">
+        Bar Conditions buoys · National Data Buoy Center (NDBC)
+      </FormLabel>
       <FormGroup>
-        {STATIONS.map((station) => (
+        {NDBC_STATION_OPTIONS.map((station) => (
           <FormControlLabel
             key={station.id}
             control={
@@ -127,11 +185,148 @@ function StationPicker({
                 onChange={() => handleToggle(station.id)}
               />
             }
-            label={station.label}
+            label={stripProviderSuffix(station.label)}
           />
         ))}
       </FormGroup>
+      <FormHelperText>
+        Select multiple buoys to render parallel Bar Conditions panels. Removal updates both the
+        list and the panels below.
+      </FormHelperText>
     </FormControl>
+  )
+}
+
+function EstuaryStationSelector({
+  value,
+  onChange,
+}: {
+  value?: string
+  onChange: (next: string) => void
+}) {
+  const hasOptions = ESTUARY_STATION_OPTIONS.length > 0
+
+  return (
+    <FormControl component="fieldset" disabled={!hasOptions}>
+      <FormLabel component="legend">
+        Estuary gauge · Center for Operational Oceanographic Products and Services (CO-OPS)
+      </FormLabel>
+      {hasOptions ? (
+        <RadioGroup
+          value={value ?? ''}
+          onChange={(event) => {
+            const next = event.target.value
+            if (next) onChange(next)
+          }}
+          name="estuary-stations"
+        >
+          {ESTUARY_STATION_OPTIONS.map((station) => (
+            <FormControlLabel
+              key={station.id}
+              value={station.id}
+              control={<Radio />}
+              label={stripProviderSuffix(station.label)}
+            />
+          ))}
+        </RadioGroup>
+      ) : (
+        <Typography variant="body2" color="text.secondary">
+          No CO-OPS gauges configured.
+        </Typography>
+      )}
+      <FormHelperText>
+        {hasOptions
+          ? 'Pick one Center for Operational Oceanographic Products and Services (CO-OPS) gauge to populate the Estuary panel.'
+          : 'Add a CO-OPS gauge in constants.ts to enable this panel.'}
+      </FormHelperText>
+    </FormControl>
+  )
+}
+
+function stripProviderSuffix(label: string) {
+  return label.replace(/\s*\((?:NDBC|CO-OPS[^)]*)\)\s*$/, '').trim()
+}
+
+function formatStationChipLabel(stationId: string) {
+  const station = stationMeta.get(stationId)
+  if (!station) return stationId
+  const segments = station.label.split('·').map((segment) => segment.trim())
+  if (segments.length <= 1) return station.label
+  const idPart = segments[0]
+  const namePart = segments.slice(1).join(' · ')
+  if (!namePart) return idPart
+  return `${idPart} · ${namePart}`
+}
+
+function StationChipRow({
+  stationIds,
+  palette = [],
+  emptyLabel,
+}: {
+  stationIds: string[]
+  palette?: string[]
+  emptyLabel?: string
+}) {
+  if (!stationIds.length) {
+    return emptyLabel ? (
+      <Typography variant="caption" color="text.secondary">
+        {emptyLabel}
+      </Typography>
+    ) : null
+  }
+
+  return (
+    <Stack direction="row" spacing={0.5} flexWrap="wrap" justifyContent="flex-end">
+      {stationIds.map((stationId, index) => {
+        const color = palette[index % palette.length]
+        return (
+          <Chip
+            key={stationId}
+            label={formatStationChipLabel(stationId)}
+            size="small"
+            sx={color ? { bgcolor: color, color: '#fff', fontWeight: 500 } : undefined}
+          />
+        )
+      })}
+    </Stack>
+  )
+}
+
+function PanelEmptyState({ message }: { message: string }) {
+  return (
+    <Box sx={{ py: 6, textAlign: 'center' }}>
+      <Typography variant="body2" color="text.secondary">
+        {message}
+      </Typography>
+    </Box>
+  )
+}
+
+function PanelCoverageLegend({ entries }: { entries: PanelCoverageEntry[] }) {
+  if (!entries.length) return null
+
+  return (
+    <Box>
+      <FormLabel sx={{ display: 'block', mb: 1 }}>Panel coverage</FormLabel>
+      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+        {entries.map((entry) => (
+          <Chip
+            key={entry.id}
+            size="small"
+            color={
+              entry.status === 'ready'
+                ? 'success'
+                : entry.status === 'caution'
+                  ? 'warning'
+                  : 'default'
+            }
+            icon={<CheckCircleOutlineRoundedIcon fontSize="small" />}
+            label={`${entry.label}: ${entry.message}`}
+            sx={{ fontWeight: 500 }}
+          />
+        ))}
+      </Stack>
+    </Box>
   )
 }
 
@@ -144,7 +339,7 @@ function DatumToggle({
 }) {
   return (
     <Box>
-      <FormLabel sx={{ mb: 1 }}>Datum</FormLabel>
+      <FormLabel sx={{ mb: 1, pr: 2 }}>Graph unit</FormLabel>
       <ToggleButtonGroup
         exclusive
         value={datum}
@@ -157,9 +352,9 @@ function DatumToggle({
         size="small"
       >
         {DATUM_OPTIONS.map((option) => (
-          <ToggleButton key={option} value={option}>
-            {option}
-          </ToggleButton>
+          <Tooltip key={option} title={GRAPH_UNIT_TOOLTIPS[option]} arrow enterTouchDelay={50}>
+            <ToggleButton value={option}>{option}</ToggleButton>
+          </Tooltip>
         ))}
       </ToggleButtonGroup>
       <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
@@ -177,10 +372,12 @@ function QcToggle({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <FormControlLabel
-      control={<Switch checked={checked} onChange={(_event, next) => onChange(next)} />}
-      label={checked ? 'Show suspect QC flags' : 'Hide suspect QC flags'}
-    />
+    <Tooltip title="Toggle to show or hide data points flagged by NOAA quality control (QC).">
+      <FormControlLabel
+        control={<Switch checked={checked} onChange={(_event, next) => onChange(next)} />}
+        label={checked ? 'Show suspect QC flags' : 'Hide suspect QC flags'}
+      />
+    </Tooltip>
   )
 }
 
@@ -225,6 +422,19 @@ function buildLineOption({
   series: LineSeriesOption[]
   yAxes?: YAXisComponentOption[]
 }): EChartsOption {
+  const normalizedYAxes: YAXisComponentOption[] = (yAxes ?? [{ type: 'value' }]).map((axis) => {
+    const defaultAlign = axis.position === 'right' ? 'left' : 'right'
+    const existingLabel = axis.axisLabel ?? {}
+    return {
+      ...axis,
+      axisLabel: {
+        ...existingLabel,
+        margin: existingLabel.margin ?? 12,
+        align: existingLabel.align ?? defaultAlign,
+      },
+    } as YAXisComponentOption
+  })
+
   return {
     tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
     grid: { left: 50, right: 20, top: 20, bottom: 40 },
@@ -232,8 +442,9 @@ function buildLineOption({
       type: 'time',
       min: range[0],
       max: range[1],
+      axisLabel: { inside: false, margin: 12 },
     },
-    yAxis: yAxes ?? [{ type: 'value' }],
+    yAxis: normalizedYAxes,
     series,
     dataZoom: [
       { type: 'inside', filterMode: 'none', minSpan: 10 },
@@ -283,18 +494,44 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
     [range.start, range.end]
   )
 
-  const [selectedStations, setSelectedStations] = useState<string[]>(
-    props.defaultStations ?? PICKER_DEFAULTS
-  )
+  const [barPanels, setBarPanels] = useState<string[]>(() => {
+    const defaults = props.defaultStations ?? PICKER_DEFAULTS
+    const buoys = defaults.filter((stationId) => stationMeta.get(stationId)?.provider === 'NDBC')
+    if (buoys.length) return buoys
+    return BAR_PANEL_DEFAULTS.slice(0, 1)
+  })
+  const [estuaryStationId, setEstuaryStationId] = useState<string | undefined>(() => {
+    const defaults = props.defaultStations ?? PICKER_DEFAULTS
+    const lastCoops = defaults
+      .filter((stationId) => stationMeta.get(stationId)?.provider === 'COOPS_OBS')
+      .pop()
+    return lastCoops ?? ESTUARY_STATION_OPTIONS[0]?.id
+  })
   const [datum, setDatum] = useState<DatumCode>(props.defaultDatum ?? DEFAULT_DATUM)
   const [showSuspect, setShowSuspect] = useState(false)
 
+  const handleRemoveBarPanel = useCallback((stationId: string) => {
+    setBarPanels((prev) => prev.filter((id) => id !== stationId))
+  }, [])
+
+  const handleBarPanelSelectionChange = useCallback((next: string[]) => {
+    setBarPanels(next)
+  }, [])
+
   const isoRange = useMemo(() => ({ start: toISO(range.start), end: toISO(range.end) }), [range])
 
-  const ndbcStations = useMemo(
-    () => selectedStations.filter((stationId) => stationMeta.get(stationId)?.provider === 'NDBC'),
-    [selectedStations]
-  )
+  const ndbcStations = barPanels
+  const estuaryStation = estuaryStationId ? stationMeta.get(estuaryStationId) : undefined
+
+  const estuaryCardTitle = useMemo(() => {
+    if (!estuaryStation) return 'Estuary'
+    const segments = estuaryStation.label.split('·').map((segment) => segment.trim())
+    const idPart = segments[0]
+    const namePart = segments.slice(1).join(' · ')
+    if (!idPart) return `Estuary · ${estuaryStation.label}`
+    if (!namePart) return `Estuary · ${idPart}`
+    return `Estuary · ${namePart} (${idPart})`
+  }, [estuaryStation])
 
   const ndbcQueries = useQueries({
     queries: ndbcStations.map((stationId) => ({
@@ -302,18 +539,42 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
       queryFn: () => fetchNdbc(stationId, isoRange.start, isoRange.end),
       enabled: !!stationId,
       staleTime: 5 * 60 * 1000,
+      retry: false,
     })),
   })
 
-  const estuaryDatum = datum === 'CRD' ? 'MLLW' : datum
+  const estuaryDatum = useMemo<DatumCode | undefined>(() => {
+    if (!estuaryStationId) return undefined
+    const allowed = ESTUARY_DATUM_CAPABLE[estuaryStationId]
+    if (!allowed?.length) {
+      return datum === 'CRD' ? 'MLLW' : datum
+    }
+    if (datum === 'CRD') {
+      if (allowed.includes('CRD')) return 'CRD'
+      const fallback = allowed.find((code) => code !== 'CRD')
+      return fallback ?? allowed[0]
+    }
+    return allowed.includes(datum) ? datum : allowed[0]
+  }, [datum, estuaryStationId])
   const estuaryObsQuery = useQuery({
-    queryKey: ['coops', 'obs', ESTUARY_STATION, estuaryDatum, isoRange.start, isoRange.end],
-    queryFn: () => fetchCoopsObs(ESTUARY_STATION, isoRange.start, isoRange.end, estuaryDatum),
+    queryKey: ['coops', 'obs', estuaryStationId, estuaryDatum, isoRange.start, isoRange.end],
+    queryFn: () => {
+      if (!estuaryStationId || !estuaryDatum) {
+        throw new Error('Missing estuary station or datum for observations fetch.')
+      }
+      return fetchCoopsObs(estuaryStationId, isoRange.start, isoRange.end, estuaryDatum)
+    },
+    enabled: Boolean(estuaryStationId && estuaryDatum),
   })
   const estuaryPredQuery = useQuery({
-    queryKey: ['coops', 'pred', ESTUARY_STATION, estuaryDatum, isoRange.start, isoRange.end],
-    queryFn: () =>
-      fetchCoopsPred(ESTUARY_STATION, isoRange.start, isoRange.end, estuaryDatum, 'gmt'),
+    queryKey: ['coops', 'pred', estuaryStationId, estuaryDatum, isoRange.start, isoRange.end],
+    queryFn: () => {
+      if (!estuaryStationId || !estuaryDatum) {
+        throw new Error('Missing estuary station or datum for predictions fetch.')
+      }
+      return fetchCoopsPred(estuaryStationId, isoRange.start, isoRange.end, estuaryDatum, 'gmt')
+    },
+    enabled: Boolean(estuaryStationId && estuaryDatum),
   })
 
   const upriverQueries = useQueries({
@@ -335,15 +596,15 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
   })
 
   const estuaryObsFiltered = useMemo(() => {
-    if (!estuaryObsQuery.data) return []
+    if (!estuaryStationId || !estuaryObsQuery.data) return []
     if (showSuspect) return estuaryObsQuery.data
     return estuaryObsQuery.data.filter((point) => !point.qc || point.qc === '0')
-  }, [estuaryObsQuery.data, showSuspect])
+  }, [estuaryStationId, estuaryObsQuery.data, showSuspect])
 
   const estuaryResidual = useMemo(() => {
-    if (!estuaryObsFiltered.length || !estuaryPredQuery.data?.length) return []
+    if (!estuaryStationId || !estuaryObsFiltered.length || !estuaryPredQuery.data?.length) return []
     return mergeResidual(estuaryObsFiltered, estuaryPredQuery.data)
-  }, [estuaryObsFiltered, estuaryPredQuery.data])
+  }, [estuaryStationId, estuaryObsFiltered, estuaryPredQuery.data])
 
   const handleDateFieldChange =
     (field: 'start' | 'end') => (event: ChangeEvent<HTMLInputElement>) => {
@@ -374,17 +635,33 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
     })
     return result
   }, [ndbcStations, ndbcQueries, showSuspect])
+  const getBuoyColor = useCallback(
+    (stationId: string) => {
+      const index = barPanels.indexOf(stationId)
+      const paletteIndex = index >= 0 ? index % BUOY_COLOR_PALETTE.length : 0
+      return BUOY_COLOR_PALETTE[paletteIndex]
+    },
+    [barPanels]
+  )
 
-  const waveChartOption = useMemo(() => {
-    const series: LineSeriesOption[] = []
-    ndbcStations.forEach((stationId, idx) => {
-      const palette = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
-      const color = palette[idx % palette.length]
+  const getBuoyPanelColor = useCallback(
+    (stationId: string) => {
+      const index = barPanels.indexOf(stationId)
+      const paletteIndex = index >= 0 ? index % BUOY_PANEL_COLORS.length : 0
+      return BUOY_PANEL_COLORS[paletteIndex]
+    },
+    [barPanels]
+  )
+
+  const buildWaveChartOption = useCallback(
+    (stationId: string) => {
+      const color = getBuoyColor(stationId)
       const wvht = waveSeries[stationId]?.WVHT ?? []
       const dpd = waveSeries[stationId]?.DPD ?? []
+      const series: LineSeriesOption[] = []
       if (wvht.length) {
         series.push({
-          name: `${stationId} WVHT (m)`,
+          name: 'Wave Height (m)',
           type: 'line',
           showSymbol: false,
           itemStyle: { color },
@@ -395,7 +672,7 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
       }
       if (dpd.length) {
         series.push({
-          name: `${stationId} DPD (s)`,
+          name: 'Dominant Period (s)',
           type: 'line',
           showSymbol: false,
           lineStyle: { type: 'dashed' },
@@ -405,52 +682,148 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
           yAxisIndex: 1,
         })
       }
-    })
-
-    if (!series.length) {
-      return {
-        title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' },
+      if (!series.length) {
+        return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
       }
-    }
+      return buildLineOption({
+        range: rangeSlider,
+        series,
+        yAxes: [
+          { type: 'value', name: 'Wave Height (m)' },
+          { type: 'value', name: 'Period (s)', position: 'right' },
+        ],
+      })
+    },
+    [getBuoyColor, rangeSlider, waveSeries]
+  )
 
-    return buildLineOption({
-      range: rangeSlider,
-      series,
-      yAxes: [
-        { type: 'value', name: 'Wave Height (m)' },
-        { type: 'value', name: 'Period (s)', position: 'right' },
-      ],
-    })
-  }, [ndbcStations, rangeSlider, waveSeries])
-
-  const windChartOption = useMemo(() => {
-    const series: LineSeriesOption[] = []
-    ndbcStations.forEach((stationId, idx) => {
-      const palette = ['#023047', '#219EBC', '#FFB703', '#FB8500']
-      const color = palette[idx % palette.length]
+  const buildWindChartOption = useCallback(
+    (stationId: string) => {
+      const color = getBuoyColor(stationId)
       const wind = waveSeries[stationId]?.WSPD ?? []
-      if (wind.length) {
-        series.push({
-          name: `${stationId} Wind (m/s)`,
-          type: 'line',
-          showSymbol: false,
-          itemStyle: { color },
-          data: toSeriesTuples(wind),
-          smooth: true,
-        })
+      if (!wind.length) {
+        return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
       }
-    })
+      return buildLineOption({
+        range: rangeSlider,
+        series: [
+          {
+            name: 'Wind Speed (m/s)',
+            type: 'line',
+            showSymbol: false,
+            itemStyle: { color },
+            data: toSeriesTuples(wind),
+            smooth: true,
+          },
+        ],
+      })
+    },
+    [getBuoyColor, rangeSlider, waveSeries]
+  )
 
-    if (!series.length) {
-      return {
-        title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' },
-      }
+  const barPanelCards = useMemo(() => {
+    if (!barPanels.length) {
+      return [
+        <Grid key="bar-empty" size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+          <Card variant="outlined" sx={CHART_CARD_SX}>
+            <CardHeader title="Bar Conditions" subheader="Wave + wind" />
+            <CardContent sx={CHART_CARD_CONTENT_SX}>
+              <PanelEmptyState message="Select a buoy in Controls to create a Bar Conditions panel." />
+            </CardContent>
+          </Card>
+        </Grid>,
+      ]
     }
 
-    return buildLineOption({ range: rangeSlider, series })
-  }, [ndbcStations, rangeSlider, waveSeries])
+    return barPanels.flatMap((stationId) => {
+      const stationLabel = describeStation(stationId)
+      const disableRemoval = barPanels.length <= 1
+      const panelBgColor = getBuoyPanelColor(stationId)
+      const removeButton = (
+        <span>
+          <IconButton
+            size="small"
+            aria-label="Remove buoy panel"
+            onClick={() => handleRemoveBarPanel(stationId)}
+            disabled={disableRemoval}
+          >
+            <CloseRoundedIcon fontSize="small" />
+          </IconButton>
+        </span>
+      )
+
+      const waveCard = (
+        <Grid
+          key={`${stationId}-wave`}
+          size={{ xs: 12, md: 6 }}
+          sx={{ display: 'flex', width: '100%' }}
+        >
+          <Card
+            variant="outlined"
+            sx={{
+              ...CHART_CARD_SX,
+              bgcolor: panelBgColor,
+              transition: 'background-color 200ms ease',
+            }}
+          >
+            <CardHeader
+              title={`Bar Conditions · ${stationLabel}`}
+              subheader="Wave Height & Period"
+              action={
+                disableRemoval ? (
+                  removeButton
+                ) : (
+                  <Tooltip title="Remove panel">{removeButton}</Tooltip>
+                )
+              }
+            />
+            <CardContent sx={CHART_CARD_CONTENT_SX}>
+              <Box sx={{ flexGrow: 1 }}>
+                <EChartCanvas option={buildWaveChartOption(stationId)} height={260} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      )
+
+      const windCard = (
+        <Grid
+          key={`${stationId}-wind`}
+          size={{ xs: 12, md: 6 }}
+          sx={{ display: 'flex', width: '100%' }}
+        >
+          <Card
+            variant="outlined"
+            sx={{
+              ...CHART_CARD_SX,
+              bgcolor: panelBgColor,
+              transition: 'background-color 200ms ease',
+            }}
+          >
+            <CardHeader title={`Bar Conditions · ${stationLabel}`} subheader="Winds" />
+            <CardContent sx={CHART_CARD_CONTENT_SX}>
+              <Box sx={{ flexGrow: 1 }}>
+                <EChartCanvas option={buildWindChartOption(stationId)} height={220} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      )
+
+      return [waveCard, windCard]
+    })
+  }, [
+    barPanels,
+    buildWaveChartOption,
+    buildWindChartOption,
+    getBuoyPanelColor,
+    handleRemoveBarPanel,
+  ])
 
   const estuaryChartOption = useMemo(() => {
+    if (!estuaryStationId) {
+      return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+    }
     if (!estuaryObsFiltered.length && !estuaryPredQuery.data?.length) {
       return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
     }
@@ -496,7 +869,7 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
         { type: 'value', name: 'Residual (m)', position: 'right' },
       ],
     })
-  }, [estuaryObsFiltered, estuaryPredQuery.data, estuaryResidual, rangeSlider])
+  }, [estuaryStationId, estuaryObsFiltered, estuaryPredQuery.data, estuaryResidual, rangeSlider])
 
   const upriverChartOption = useMemo(() => {
     const series: LineSeriesOption[] = []
@@ -520,30 +893,84 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
   }, [rangeSlider, upriverQueries])
 
   const hasBarPanelDefaults = useMemo(
-    () => BAR_PANEL_DEFAULTS.every((id) => selectedStations.includes(id)),
-    [selectedStations]
+    () => BAR_PANEL_DEFAULTS.every((id) => barPanels.includes(id)),
+    [barPanels]
   )
 
-  const selectionHelper = !hasBarPanelDefaults
-    ? 'Tip: include 46029 & 46243 for complete bar coverage.'
-    : undefined
+  const panelCoverage = useMemo<PanelCoverageEntry[]>(() => {
+    const entries: PanelCoverageEntry[] = []
+    const barStatus: PanelCoverageStatus = barPanels.length
+      ? hasBarPanelDefaults
+        ? 'ready'
+        : 'caution'
+      : 'blocked'
+    const barMessage = !barPanels.length
+      ? 'Select a buoy to create a Bar Conditions panel.'
+      : hasBarPanelDefaults
+        ? 'Panels cover the full Columbia River Bar.'
+        : 'Add 46029 + 46243 for complete bar coverage.'
+    entries.push({ id: 'bar', label: 'Bar Conditions', status: barStatus, message: barMessage })
+
+    const estuaryStatus: PanelCoverageStatus = estuaryStationId ? 'ready' : 'blocked'
+    const estuaryMessage = estuaryStationId
+      ? `Showing ${describeStation(estuaryStationId)}.`
+      : 'Pick a CO-OPS gauge to power the Estuary chart.'
+    entries.push({
+      id: 'estuary',
+      label: 'Estuary',
+      status: estuaryStatus,
+      message: estuaryMessage,
+    })
+
+    entries.push({
+      id: 'upriver',
+      label: 'Upriver',
+      status: 'ready',
+      message: 'Stations fixed to Portland (9439221) & Vancouver (9440083).',
+    })
+
+    return entries
+  }, [barPanels.length, estuaryStationId, hasBarPanelDefaults])
+
+  const estuaryLoading = Boolean(
+    estuaryStationId && estuaryDatum && (estuaryObsQuery.isLoading || estuaryPredQuery.isLoading)
+  )
 
   const loading =
     ndbcQueries.some((query) => query.isLoading) ||
-    estuaryObsQuery.isLoading ||
-    estuaryPredQuery.isLoading ||
+    estuaryLoading ||
     upriverQueries.some((query) => query.isLoading)
+
+  const estuaryError =
+    estuaryStationId && estuaryDatum ? estuaryObsQuery.error || estuaryPredQuery.error : undefined
 
   const firstError =
     ndbcQueries.find((query) => query.error)?.error ||
-    estuaryObsQuery.error ||
-    estuaryPredQuery.error ||
+    estuaryError ||
     upriverQueries.find((query) => query.error)?.error
-  const firstErrorMessage =
-    firstError instanceof Error ? firstError.message : firstError ? String(firstError) : undefined
+  const firstErrorMessage = formatDashboardError(firstError)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Card variant="outlined">
+        <CardContent>
+          <Typography variant="h6" gutterBottom>
+            Pacific Northwest ocean snapshot
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            Wave and wind panels aggregate near-real-time National Data Buoy Center (NDBC) buoy
+            feeds. The estuary chart compares Center for Operational Oceanographic Products and
+            Services (CO-OPS) observations with predictions for the estuary station you pick. The
+            upriver view shows forecasted water levels for Portland, Oregon (OR) and Vancouver,
+            Washington (WA).
+          </Typography>
+          <Typography variant="body2">
+            Use the Controls card to choose stations, set a From/To window within the last 30 days,
+            switch the graph unit for consistent vertical datums, and toggle quality control (QC)
+            flags when inspecting suspect readings.
+          </Typography>
+        </CardContent>
+      </Card>
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
         <Alert sx={{ width: '100%' }} severity="info">
           This view is under construction!
@@ -560,7 +987,9 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
                 loading ? (
                   <Stack direction="row" spacing={1} alignItems="center">
                     <CircularProgress size={18} />
-                    <Typography variant="body2">Refreshing NOAA feeds…</Typography>
+                    <Typography variant="body2">
+                      Refreshing National Oceanic and Atmospheric Administration (NOAA) feeds…
+                    </Typography>
                   </Stack>
                 ) : undefined
               }
@@ -606,12 +1035,9 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
                   </Stack>
                 </Box>
 
-                <StationPicker value={selectedStations} onChange={setSelectedStations} />
-                {selectionHelper && (
-                  <Typography variant="caption" color="text.secondary">
-                    {selectionHelper}
-                  </Typography>
-                )}
+                <BarStationSelector value={barPanels} onChange={handleBarPanelSelectionChange} />
+                <EstuaryStationSelector value={estuaryStationId} onChange={setEstuaryStationId} />
+                <PanelCoverageLegend entries={panelCoverage} />
 
                 <DatumToggle datum={datum} onChange={setDatum} />
                 <QcToggle checked={showSuspect} onChange={setShowSuspect} />
@@ -646,43 +1072,53 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
           <Stack spacing={2}>
             {firstErrorMessage && <Alert severity="error">{firstErrorMessage}</Alert>}
 
-            <Card variant="outlined">
-              <CardHeader title="Bar Conditions" subheader="Wave + wind" />
-              <CardContent>
-                <Stack spacing={3}>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Wave Height & Period
-                    </Typography>
-                    <EChartCanvas option={waveChartOption} height={260} />
-                  </Box>
-                  <Divider flexItem />
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      Winds
-                    </Typography>
-                    <EChartCanvas option={windChartOption} height={220} />
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
+            <Grid container spacing={2} alignItems="stretch">
+              {barPanelCards}
 
-            <Card variant="outlined">
-              <CardHeader title="Estuary · Astoria (9439040)" subheader={`Datum ${estuaryDatum}`} />
-              <CardContent>
-                <EChartCanvas option={estuaryChartOption} height={320} />
-              </CardContent>
-            </Card>
+              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+                <Card variant="outlined" sx={CHART_CARD_SX}>
+                  <CardHeader
+                    title={estuaryCardTitle}
+                    subheader={
+                      estuaryDatum ? `Datum ${estuaryDatum}` : 'Choose a CO-OPS gauge in Controls'
+                    }
+                    action={
+                      <StationChipRow
+                        stationIds={estuaryStationId ? [estuaryStationId] : []}
+                        emptyLabel="Pick a CO-OPS gauge"
+                      />
+                    }
+                  />
+                  <CardContent sx={CHART_CARD_CONTENT_SX}>
+                    {estuaryStationId && estuaryDatum ? (
+                      <Box sx={{ flexGrow: 1 }}>
+                        <EChartCanvas option={estuaryChartOption} height={320} />
+                      </Box>
+                    ) : (
+                      <PanelEmptyState message="Choose a CO-OPS estuary gauge in Controls to compare observed vs. predicted water levels." />
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
 
-            <Card variant="outlined">
-              <CardHeader title="Upriver Predictions" subheader="Portland + Vancouver" />
-              <CardContent>
-                <EChartCanvas option={upriverChartOption} height={320} />
-                <Typography variant="caption" color="text.secondary">
-                  Times shown in local (LST/LDT) per CO-OPS response.
-                </Typography>
-              </CardContent>
-            </Card>
+              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+                <Card variant="outlined" sx={CHART_CARD_SX}>
+                  <CardHeader
+                    title="Upriver Predictions"
+                    subheader="Stations fixed to Portland (9439221) · Vancouver (9440083)"
+                    action={<StationChipRow stationIds={UPRIVER_STATIONS} />}
+                  />
+                  <CardContent sx={CHART_CARD_CONTENT_SX}>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <EChartCanvas option={upriverChartOption} height={320} />
+                    </Box>
+                    <Typography variant="caption" color="text.secondary">
+                      Times shown in local (LST/LDT) per CO-OPS response.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
           </Stack>
         </Grid>
       </Grid>

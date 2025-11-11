@@ -1,16 +1,25 @@
 import type { DatumCode, StationDefinition } from './types'
 
+export type NdbcProxy = {
+  id: string
+  url: string
+}
+
 export const NDBC_REALTIME_URL = 'https://www.ndbc.noaa.gov/data/realtime2'
 export const COOPS_BASE_URL =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?application=codex&units=metric&format=json'
 
-const runtimeProxy = import.meta.env?.VITE_NDBC_PROXY as string | undefined
-export const NDBC_PROXY_CHAIN = [
-  runtimeProxy,
-  'https://cors.isomorphic-git.org/',
-  'https://thingproxy.freeboard.io/fetch/',
-  'https://api.allorigins.win/raw?url=',
-].filter(Boolean) as string[]
+const runtimeProxy = (import.meta.env?.VITE_NDBC_PROXY as string | undefined)?.trim()
+const proxyDefinitions: Array<NdbcProxy | undefined> = [
+  runtimeProxy ? { id: 'runtime', url: runtimeProxy } : undefined,
+  { id: 'r.jina.ai', url: 'https://r.jina.ai/https://' },
+  { id: 'isomorphic-git', url: 'https://cors.isomorphic-git.org/' },
+  { id: 'thingproxy', url: 'https://thingproxy.freeboard.io/fetch/' },
+  { id: 'allorigins', url: 'https://api.allorigins.win/raw?url=' },
+]
+export const NDBC_PROXY_CHAIN = proxyDefinitions.filter((entry): entry is NdbcProxy =>
+  Boolean(entry?.url)
+)
 
 export const DEFAULT_DATUM: DatumCode = 'MLLW'
 export const DATUM_OPTIONS: DatumCode[] = ['MLLW', 'NAVD88', 'CRD']
@@ -65,7 +74,6 @@ export const BAR_PANEL_DEFAULTS = ['46029', '46243']
 export const PICKER_DEFAULTS = ['46029', '46243', '9439040']
 
 export const UPRIVER_STATIONS = ['9439221', '9440083']
-export const ESTUARY_STATION = '9439040'
 export const ESTUARY_DATUM_CAPABLE: Record<string, DatumCode[]> = {
   '9439040': ['MLLW', 'NAVD88'],
 }

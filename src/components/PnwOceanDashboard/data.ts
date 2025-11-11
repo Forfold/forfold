@@ -4,6 +4,28 @@ import { parseNdbcText, prepTimeSeries, toQueryDateTime } from './utils'
 
 const REQUEST_TIMEOUT = 25000
 
+type ProxyAttempt = {
+  via: string
+  url?: string
+}
+
+export class NdbcFetchError extends Error {
+  stationId: string
+  attempts: Array<{ via: string; message: string }>
+  attemptSummary: string
+
+  constructor(stationId: string, attempts: Array<{ via: string; message: string }>) {
+    const summary = summarizeAttemptMessages(attempts)
+    const messageBase = `Unable to reach NDBC feed for ${stationId}`
+    super(summary ? `${messageBase}: ${summary}` : messageBase)
+    this.stationId = stationId
+    this.attempts = attempts
+    this.attemptSummary = summary
+    this.name = 'NdbcFetchError'
+    Object.setPrototypeOf(this, NdbcFetchError.prototype)
+  }
+}
+
 async function fetchWithTimeout(url: string): Promise<Response> {
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT)
@@ -23,6 +45,16 @@ async function fetchNdbcText(url: string) {
   return response.text()
 }
 
+function summarizeAttemptMessages(attempts: Array<{ message: string }>) {
+  const counts = new Map<string, number>()
+  attempts.forEach(({ message }) => {
+    counts.set(message, (counts.get(message) ?? 0) + 1)
+  })
+  return Array.from(counts.entries())
+    .map(([message, count]) => (count > 1 ? `${message} ×${count}` : message))
+    .join(' | ')
+}
+
 function buildProxyUrl(proxy: string, target: string) {
   if (!proxy) return target
   if (proxy.includes('{url}')) {
@@ -30,6 +62,10 @@ function buildProxyUrl(proxy: string, target: string) {
   }
   if (proxy.includes('allorigins')) {
     return `${proxy}${encodeURIComponent(target)}`
+  }
+  if (proxy.endsWith('://')) {
+    const sanitizedTarget = target.replace(/^https?:\/\//i, '')
+    return `${proxy}${sanitizedTarget}`
   }
   if (/url=?$/i.test(proxy) || proxy.endsWith('?url=')) {
     return `${proxy}${encodeURIComponent(target)}`
@@ -43,20 +79,26 @@ export async function fetchNdbc(
   endISO?: string
 ): Promise<NdbcRow[]> {
   const url = `${NDBC_REALTIME_URL}/${stationId}.txt`
-  const attempts = [undefined, ...NDBC_PROXY_CHAIN]
-  const errors: string[] = []
+  const attempts: ProxyAttempt[] = [
+    { via: 'direct', url: undefined },
+    ...NDBC_PROXY_CHAIN.map((proxy) => ({ via: proxy.id, url: proxy.url })),
+  ]
+  const failures: Array<{ via: string; message: string }> = []
 
-  for (const proxy of attempts) {
-    const target = proxy ? buildProxyUrl(proxy, url) : url
+  for (const attempt of attempts) {
+    const target = attempt.url ? buildProxyUrl(attempt.url, url) : url
     try {
       const text = await fetchNdbcText(target)
       return parseNdbcText(text, startISO, endISO)
     } catch (error) {
-      errors.push(error instanceof Error ? error.message : String(error))
+      failures.push({
+        via: attempt.via,
+        message: error instanceof Error ? error.message : String(error),
+      })
     }
   }
 
-  throw new Error(`NDBC fetch failed for ${stationId}: ${errors.join(' | ')}`)
+  throw new NdbcFetchError(stationId, failures)
 }
 
 type CoopsParams = {
