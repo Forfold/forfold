@@ -18,16 +18,11 @@ import {
 } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
-import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import {
   BAR_PANEL_DEFAULTS,
-  DATUM_OPTIONS,
-  DEFAULT_DATUM,
   ESTUARY_DATUM_CAPABLE,
-  PICKER_DEFAULTS,
-  STATIONS,
   UPRIVER_STATIONS,
   CRD_SUPPORTED_STATIONS,
 } from './constants'
@@ -39,18 +34,13 @@ import {
   lttb,
   mergeResidual,
   parseDateTimeLocalInput,
-  toISO,
   toSeriesTuples,
 } from './utils'
-import {
-  describeStation,
-  formatStationChipLabel,
-  stationMeta,
-} from './stationInfo'
+import { describeStation, formatStationChipLabel, stationMeta } from './stationInfo'
 import {
   DATE_RANGE_WINDOW_DAYS,
   PnwControlsProvider,
-  SliderRange,
+  type SliderRange,
   useDashboardControls,
 } from './ControlsContext'
 import {
@@ -76,12 +66,6 @@ type DashboardWithDrawerProps = PnwOceanDashboardProps & {
   onCloseControlsDrawer?: () => void
 }
 
-const GRAPH_UNIT_TOOLTIPS: Record<DatumCode, string> = {
-  MLLW: 'Mean Lower Low Water: standard NOAA tidal reference along the coast.',
-  NAVD88: 'North American Vertical Datum 1988: stable inland elevation baseline.',
-  CRD: 'Columbia River Datum: CO-OPS vertical reference for upriver predictions.',
-}
-
 function formatDashboardError(error: unknown) {
   if (!error) return undefined
   if (error instanceof NdbcFetchError) {
@@ -98,8 +82,6 @@ function formatDashboardError(error: unknown) {
   }
   return undefined
 }
-
-type SliderRange = [number, number]
 
 type EChartCanvasProps = {
   option: EChartsOption
@@ -288,14 +270,10 @@ function DashboardContent({
     setRange,
     barPanels,
     estuaryStationId,
-    setEstuaryStationId,
     datum,
-    setDatum,
     showSuspect,
-    setShowSuspect,
     isoRange,
     rangeSlider,
-    handleBarPanelSelectionChange,
     handleRemoveBarPanel,
   } = useDashboardControls()
 
@@ -402,9 +380,9 @@ function DashboardContent({
 
   const handleDateFieldChange =
     (field: 'start' | 'end') => (event: ChangeEvent<HTMLInputElement>) => {
-      const nextValue = parseDateTimeLocalInput(event.target.value)
-      if (!nextValue) return
-      const clampedValue = clampDate(nextValue, pickerMinDate, pickerMaxDate)
+      const parsedValue = parseDateTimeLocalInput(event.currentTarget.value)
+      if (!parsedValue) return
+      const clampedValue = clampDate(parsedValue, pickerMinDate, pickerMaxDate)
       setRange((prev) => {
         if (field === 'start') {
           const nextStart = clampedValue
@@ -763,7 +741,12 @@ function DashboardContent({
               flexDirection: 'column',
             }}
           >
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              justifyContent="space-between"
+              sx={{ mb: 2 }}
+            >
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
                 Dashboard Controls
               </Typography>
@@ -806,7 +789,7 @@ function DashboardContent({
           This view is under construction!
         </Alert>
       </Box>
-      <Grid container spacing={2}>
+      <Grid container spacing={{ xs: 1, md: 2 }}>
         <Grid size={{ xs: 12, md: 3 }} sx={{ order: { xs: 1, md: 2 } }}>
           <Stack spacing={2}>
             {showInlineControls && (
@@ -873,7 +856,7 @@ function DashboardContent({
           <Stack spacing={2}>
             {firstErrorMessage && <Alert severity="error">{firstErrorMessage}</Alert>}
 
-            <Grid container spacing={2} alignItems="stretch">
+            <Grid container spacing={{ xs: 1, md: 2 }} alignItems="stretch">
               {barPanelCards}
 
               <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>

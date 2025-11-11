@@ -221,7 +221,7 @@ export function formatDateTimeLocalInput(date: Date) {
   return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
-export function parseDateTimeLocalInput(value: string) {
+export function parseDateTimeLocalInput(value: string): Date | undefined {
   if (!value) return undefined
   const [datePart, timePart] = value.split('T')
   if (!datePart || !timePart) return undefined
