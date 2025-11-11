@@ -16,8 +16,7 @@ export const theme = createTheme({
     },
 
     info: {
-      main: '#E8DCC5',
-      contrastText: '#1F2C31',
+      main: brown,
     },
 
     warning: {

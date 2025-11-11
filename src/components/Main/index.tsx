@@ -6,6 +6,7 @@ import { theme } from '../../theme'
 import { About } from '../About'
 import Home from '../Home'
 import { Resume } from '../Resume'
+import { PnwOceanDashboard } from '../PnwOceanDashboard'
 
 export function Main() {
   const [value, setValue] = useState(0)
@@ -72,7 +73,7 @@ export function Main() {
               >
                 <Tab value={0} label="HOME" />
                 <Tab value={1} label="RESUME" />
-                {/* <Tab value={2} label="AUDIO" /> */}
+                <Tab value={2} label="PNW OCEAN" />
                 <Tab value={3} label="ABOUT" />
               </Tabs>
             </Box>
@@ -97,7 +98,7 @@ export function Main() {
           <Suspense fallback={<div>Loading...</div>}>
             {value === 0 && <Home />}
             {value === 1 && <Resume />}
-            {/* {value === 2 && <Audio />} */}
+            {value === 2 && <PnwOceanDashboard />}
             {value === 3 && <About />}
           </Suspense>
         </Grid>
