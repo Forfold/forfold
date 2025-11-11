@@ -1,4 +1,5 @@
-import type { NdbcRow, TimePoint } from './types'
+import { DEFAULT_HISTORY_DAYS, MAX_HISTORY_DAYS } from './constants'
+import type { NdbcRow, PnwOceanDashboardProps, TimePoint } from './types'
 
 const MISSING = new Set(['MM', '9999', '999.0', '99.00', '', undefined as unknown as string])
 
@@ -196,4 +197,36 @@ export function clampDate(date: Date, min: Date, max: Date): Date {
 
 export function toISO(date: Date): string {
   return new Date(date).toISOString()
+}
+
+export function computeDefaultRange(props: PnwOceanDashboardProps) {
+  const DAY_MS = 24 * 60 * 60 * 1000
+  const end = props.endISO ? new Date(props.endISO) : new Date()
+  const maxDomainStart = new Date(end.getTime() - MAX_HISTORY_DAYS * DAY_MS)
+  const defaultDays = props.defaultDays ?? DEFAULT_HISTORY_DAYS
+  const defaultStartCandidate = props.startISO
+    ? new Date(props.startISO)
+    : new Date(end.getTime() - defaultDays * DAY_MS)
+  const start = clampDate(defaultStartCandidate, maxDomainStart, end)
+  return { start, end, domainStart: maxDomainStart, domainEnd: end }
+}
+
+export function formatDateTimeLocalInput(date: Date) {
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+export function parseDateTimeLocalInput(value: string) {
+  if (!value) return undefined
+  const [datePart, timePart] = value.split('T')
+  if (!datePart || !timePart) return undefined
+  const [year, month, day] = datePart.split('-').map((segment) => Number(segment))
+  const [hour, minute] = timePart.split(':').map((segment) => Number(segment))
+  if ([year, month, day, hour, minute].some((segment) => Number.isNaN(segment))) return undefined
+  return new Date(year, (month ?? 1) - 1, day ?? 1, hour ?? 0, minute ?? 0)
 }

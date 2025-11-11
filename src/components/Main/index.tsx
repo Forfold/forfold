@@ -1,7 +1,8 @@
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
-import { Box, Tabs, Tab, Grid, Toolbar, AppBar, Typography } from '@mui/material'
+import { Box, Tabs, Tab, Grid, Toolbar, AppBar, Typography, IconButton } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
+import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import { theme } from '../../theme'
 import { About } from '../About'
 import Home from '../Home'
@@ -10,10 +11,17 @@ import { PnwOceanDashboard } from '../PnwOceanDashboard'
 
 export function Main() {
   const [value, setValue] = useState(0)
+  const [controlsDrawerOpen, setControlsDrawerOpen] = useState(false)
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
   }
+
+  useEffect(() => {
+    if (value !== 2 && controlsDrawerOpen) {
+      setControlsDrawerOpen(false)
+    }
+  }, [controlsDrawerOpen, value])
 
   return (
     <ThemeProvider theme={theme}>
@@ -77,6 +85,16 @@ export function Main() {
                 <Tab value={3} label="ABOUT" />
               </Tabs>
             </Box>
+
+            <IconButton
+              color="inherit"
+              edge="end"
+              aria-label="Open dashboard controls"
+              onClick={() => setControlsDrawerOpen(true)}
+              sx={{ display: { xs: value === 2 ? 'inline-flex' : 'none', md: 'none' } }}
+            >
+              <MenuRoundedIcon />
+            </IconButton>
           </Toolbar>
         </AppBar>
 
@@ -98,7 +116,12 @@ export function Main() {
           <Suspense fallback={<div>Loading...</div>}>
             {value === 0 && <Home />}
             {value === 1 && <Resume />}
-            {value === 2 && <PnwOceanDashboard />}
+            {value === 2 && (
+              <PnwOceanDashboard
+                controlsDrawerOpen={controlsDrawerOpen}
+                onCloseControlsDrawer={() => setControlsDrawerOpen(false)}
+              />
+            )}
             {value === 3 && <About />}
           </Suspense>
         </Grid>

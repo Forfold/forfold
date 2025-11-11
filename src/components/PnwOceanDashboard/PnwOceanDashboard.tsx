@@ -1,4 +1,4 @@
-import { type ChangeEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type ChangeEvent, useCallback, useEffect, useMemo, useRef } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
 import {
@@ -7,26 +7,17 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Checkbox,
   Chip,
   CircularProgress,
-  FormControl,
-  FormControlLabel,
-  FormGroup,
-  FormHelperText,
-  FormLabel,
+  Drawer,
   Grid,
   IconButton,
-  Radio,
-  RadioGroup,
   Stack,
-  Switch,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from '@mui/material'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import { useTheme } from '@mui/material/styles'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useQueries, useQuery } from '@tanstack/react-query'
@@ -34,9 +25,7 @@ import {
   BAR_PANEL_DEFAULTS,
   DATUM_OPTIONS,
   DEFAULT_DATUM,
-  DEFAULT_HISTORY_DAYS,
   ESTUARY_DATUM_CAPABLE,
-  MAX_HISTORY_DAYS,
   PICKER_DEFAULTS,
   STATIONS,
   UPRIVER_STATIONS,
@@ -44,14 +33,33 @@ import {
 } from './constants'
 import type { DatumCode, NdbcRow, PnwOceanDashboardProps, TimePoint } from './types'
 import { fetchCoopsObs, fetchCoopsPred, fetchNdbc, NdbcFetchError } from './data'
-import { clampDate, formatRangeLabel, lttb, mergeResidual, toISO, toSeriesTuples } from './utils'
+import {
+  clampDate,
+  formatRangeLabel,
+  lttb,
+  mergeResidual,
+  parseDateTimeLocalInput,
+  toISO,
+  toSeriesTuples,
+} from './utils'
+import {
+  describeStation,
+  formatStationChipLabel,
+  stationMeta,
+} from './stationInfo'
+import {
+  DATE_RANGE_WINDOW_DAYS,
+  PnwControlsProvider,
+  SliderRange,
+  useDashboardControls,
+} from './ControlsContext'
+import {
+  DashboardControls,
+  type PanelCoverageEntry,
+  type PanelCoverageStatus,
+} from './components/DashboardControls'
 
 const DAY_MS = 24 * 60 * 60 * 1000
-const DATE_RANGE_WINDOW_DAYS = MAX_HISTORY_DAYS
-
-const stationMeta = new Map(STATIONS.map((station) => [station.id, station]))
-const NDBC_STATION_OPTIONS = STATIONS.filter((station) => station.provider === 'NDBC')
-const ESTUARY_STATION_OPTIONS = STATIONS.filter((station) => station.provider === 'COOPS_OBS')
 
 const BUOY_COLOR_PALETTE = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
 const BUOY_PANEL_COLORS = ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4']
@@ -63,23 +71,15 @@ const CHART_CARD_SX = {
 } as const
 const CHART_CARD_CONTENT_SX = { flexGrow: 1, display: 'flex', flexDirection: 'column' } as const
 
-type PanelCoverageStatus = 'ready' | 'caution' | 'blocked'
-
-type PanelCoverageEntry = {
-  id: 'bar' | 'estuary' | 'upriver'
-  label: string
-  status: PanelCoverageStatus
-  message: string
+type DashboardWithDrawerProps = PnwOceanDashboardProps & {
+  controlsDrawerOpen?: boolean
+  onCloseControlsDrawer?: () => void
 }
 
 const GRAPH_UNIT_TOOLTIPS: Record<DatumCode, string> = {
   MLLW: 'Mean Lower Low Water: standard NOAA tidal reference along the coast.',
   NAVD88: 'North American Vertical Datum 1988: stable inland elevation baseline.',
   CRD: 'Columbia River Datum: CO-OPS vertical reference for upriver predictions.',
-}
-
-function describeStation(stationId: string) {
-  return stationMeta.get(stationId)?.label ?? stationId
 }
 
 function formatDashboardError(error: unknown) {
@@ -97,17 +97,6 @@ function formatDashboardError(error: unknown) {
     return error
   }
   return undefined
-}
-
-function computeDefaultRange(props: PnwOceanDashboardProps) {
-  const end = props.endISO ? new Date(props.endISO) : new Date()
-  const maxDomainStart = new Date(end.getTime() - MAX_HISTORY_DAYS * DAY_MS)
-  const defaultDays = props.defaultDays ?? DEFAULT_HISTORY_DAYS
-  const defaultStartCandidate = props.startISO
-    ? new Date(props.startISO)
-    : new Date(end.getTime() - defaultDays * DAY_MS)
-  const start = clampDate(defaultStartCandidate, maxDomainStart, end)
-  return { start, end, domainStart: maxDomainStart, domainEnd: end }
 }
 
 type SliderRange = [number, number]
@@ -156,108 +145,6 @@ function EChartCanvas({ option, height }: EChartCanvasProps) {
   return <Box ref={containerRef} sx={{ width: '100%', height }} />
 }
 
-function BarStationSelector({
-  value,
-  onChange,
-}: {
-  value: string[]
-  onChange: (next: string[]) => void
-}) {
-  const handleToggle = (stationId: string) => {
-    const next = value.includes(stationId)
-      ? value.filter((id) => id !== stationId)
-      : [...value, stationId]
-    onChange(next)
-  }
-
-  return (
-    <FormControl component="fieldset" variant="standard">
-      <FormLabel component="legend">
-        Bar Conditions buoys · National Data Buoy Center (NDBC)
-      </FormLabel>
-      <FormGroup>
-        {NDBC_STATION_OPTIONS.map((station) => (
-          <FormControlLabel
-            key={station.id}
-            control={
-              <Checkbox
-                checked={value.includes(station.id)}
-                onChange={() => handleToggle(station.id)}
-              />
-            }
-            label={stripProviderSuffix(station.label)}
-          />
-        ))}
-      </FormGroup>
-      <FormHelperText>
-        Select multiple buoys to render parallel Bar Conditions panels. Removal updates both the
-        list and the panels below.
-      </FormHelperText>
-    </FormControl>
-  )
-}
-
-function EstuaryStationSelector({
-  value,
-  onChange,
-}: {
-  value?: string
-  onChange: (next: string) => void
-}) {
-  const hasOptions = ESTUARY_STATION_OPTIONS.length > 0
-
-  return (
-    <FormControl component="fieldset" disabled={!hasOptions}>
-      <FormLabel component="legend">
-        Estuary gauge · Center for Operational Oceanographic Products and Services (CO-OPS)
-      </FormLabel>
-      {hasOptions ? (
-        <RadioGroup
-          value={value ?? ''}
-          onChange={(event) => {
-            const next = event.target.value
-            if (next) onChange(next)
-          }}
-          name="estuary-stations"
-        >
-          {ESTUARY_STATION_OPTIONS.map((station) => (
-            <FormControlLabel
-              key={station.id}
-              value={station.id}
-              control={<Radio />}
-              label={stripProviderSuffix(station.label)}
-            />
-          ))}
-        </RadioGroup>
-      ) : (
-        <Typography variant="body2" color="text.secondary">
-          No CO-OPS gauges configured.
-        </Typography>
-      )}
-      <FormHelperText>
-        {hasOptions
-          ? 'Pick one Center for Operational Oceanographic Products and Services (CO-OPS) gauge to populate the Estuary panel.'
-          : 'Add a CO-OPS gauge in constants.ts to enable this panel.'}
-      </FormHelperText>
-    </FormControl>
-  )
-}
-
-function stripProviderSuffix(label: string) {
-  return label.replace(/\s*\((?:NDBC|CO-OPS[^)]*)\)\s*$/, '').trim()
-}
-
-function formatStationChipLabel(stationId: string) {
-  const station = stationMeta.get(stationId)
-  if (!station) return stationId
-  const segments = station.label.split('·').map((segment) => segment.trim())
-  if (segments.length <= 1) return station.label
-  const idPart = segments[0]
-  const namePart = segments.slice(1).join(' · ')
-  if (!namePart) return idPart
-  return `${idPart} · ${namePart}`
-}
-
 function StationChipRow({
   stationIds,
   palette = [],
@@ -299,85 +186,6 @@ function PanelEmptyState({ message }: { message: string }) {
         {message}
       </Typography>
     </Box>
-  )
-}
-
-function PanelCoverageLegend({ entries }: { entries: PanelCoverageEntry[] }) {
-  if (!entries.length) return null
-
-  return (
-    <Box>
-      <FormLabel sx={{ display: 'block', mb: 1 }}>Panel coverage</FormLabel>
-      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-        {entries.map((entry) => (
-          <Chip
-            key={entry.id}
-            size="small"
-            color={
-              entry.status === 'ready'
-                ? 'success'
-                : entry.status === 'caution'
-                  ? 'warning'
-                  : 'default'
-            }
-            icon={<CheckCircleOutlineRoundedIcon fontSize="small" />}
-            label={`${entry.label}: ${entry.message}`}
-            sx={{ fontWeight: 500 }}
-          />
-        ))}
-      </Stack>
-    </Box>
-  )
-}
-
-function DatumToggle({
-  datum,
-  onChange,
-}: {
-  datum: DatumCode
-  onChange: (next: DatumCode) => void
-}) {
-  return (
-    <Box>
-      <FormLabel sx={{ mb: 1, pr: 2 }}>Graph unit</FormLabel>
-      <ToggleButtonGroup
-        exclusive
-        value={datum}
-        onChange={(_event, value) => {
-          const next = value as DatumCode | null
-          if (next) {
-            onChange(next)
-          }
-        }}
-        size="small"
-      >
-        {DATUM_OPTIONS.map((option) => (
-          <Tooltip key={option} title={GRAPH_UNIT_TOOLTIPS[option]} arrow enterTouchDelay={50}>
-            <ToggleButton value={option}>{option}</ToggleButton>
-          </Tooltip>
-        ))}
-      </ToggleButtonGroup>
-      <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
-        CRD applies to upriver stations only.
-      </Typography>
-    </Box>
-  )
-}
-
-function QcToggle({
-  checked,
-  onChange,
-}: {
-  checked: boolean
-  onChange: (checked: boolean) => void
-}) {
-  return (
-    <Tooltip title="Toggle to show or hide data points flagged by NOAA quality control (QC).">
-      <FormControlLabel
-        control={<Switch checked={checked} onChange={(_event, next) => onChange(next)} />}
-        label={checked ? 'Show suspect QC flags' : 'Hide suspect QC flags'}
-      />
-    </Tooltip>
   )
 }
 
@@ -456,70 +264,56 @@ function buildLineOption({
 
 const EMPTY_SERIES_MSG = 'No data in range.'
 
-function formatDateTimeLocalInput(date: Date) {
-  const pad = (value: number) => value.toString().padStart(2, '0')
-  const year = date.getFullYear()
-  const month = pad(date.getMonth() + 1)
-  const day = pad(date.getDate())
-  const hours = pad(date.getHours())
-  const minutes = pad(date.getMinutes())
-  return `${year}-${month}-${day}T${hours}:${minutes}`
+export function PnwOceanDashboard(props: DashboardWithDrawerProps) {
+  const { controlsDrawerOpen, onCloseControlsDrawer, ...initialProps } = props
+  return (
+    <PnwControlsProvider initialProps={initialProps}>
+      <DashboardContent
+        controlsDrawerOpen={controlsDrawerOpen}
+        onCloseControlsDrawer={onCloseControlsDrawer}
+      />
+    </PnwControlsProvider>
+  )
 }
 
-function parseDateTimeLocalInput(value: string) {
-  if (!value) return undefined
-  const [datePart, timePart] = value.split('T')
-  if (!datePart || !timePart) return undefined
-  const [year, month, day] = datePart.split('-').map((segment) => Number(segment))
-  const [hour, minute] = timePart.split(':').map((segment) => Number(segment))
-  if ([year, month, day, hour, minute].some((segment) => Number.isNaN(segment))) return undefined
-  return new Date(year, (month ?? 1) - 1, day ?? 1, hour ?? 0, minute ?? 0)
-}
-
-export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
-  const [range, setRange] = useState<{ start: Date; end: Date }>(() => {
-    const initial = computeDefaultRange(props)
-    const now = new Date()
-    const minDate = new Date(now.getTime() - DATE_RANGE_WINDOW_DAYS * DAY_MS)
-    return {
-      start: clampDate(initial.start, minDate, now),
-      end: clampDate(initial.end, minDate, now),
-    }
-  })
+function DashboardContent({
+  controlsDrawerOpen = false,
+  onCloseControlsDrawer,
+}: {
+  controlsDrawerOpen?: boolean
+  onCloseControlsDrawer?: () => void
+}) {
+  const {
+    range,
+    setRange,
+    barPanels,
+    estuaryStationId,
+    setEstuaryStationId,
+    datum,
+    setDatum,
+    showSuspect,
+    setShowSuspect,
+    isoRange,
+    rangeSlider,
+    handleBarPanelSelectionChange,
+    handleRemoveBarPanel,
+  } = useDashboardControls()
 
   const pickerMaxDate = new Date()
   const pickerMinDate = new Date(pickerMaxDate.getTime() - DATE_RANGE_WINDOW_DAYS * DAY_MS)
-  const rangeSlider = useMemo<SliderRange>(
-    () => [range.start.getTime(), range.end.getTime()],
-    [range.start, range.end]
-  )
+  const theme = useTheme()
+  const showInlineControls = useMediaQuery(theme.breakpoints.up('md'))
+  const drawerOpen = Boolean(!showInlineControls && controlsDrawerOpen)
 
-  const [barPanels, setBarPanels] = useState<string[]>(() => {
-    const defaults = props.defaultStations ?? PICKER_DEFAULTS
-    const buoys = defaults.filter((stationId) => stationMeta.get(stationId)?.provider === 'NDBC')
-    if (buoys.length) return buoys
-    return BAR_PANEL_DEFAULTS.slice(0, 1)
-  })
-  const [estuaryStationId, setEstuaryStationId] = useState<string | undefined>(() => {
-    const defaults = props.defaultStations ?? PICKER_DEFAULTS
-    const lastCoops = defaults
-      .filter((stationId) => stationMeta.get(stationId)?.provider === 'COOPS_OBS')
-      .pop()
-    return lastCoops ?? ESTUARY_STATION_OPTIONS[0]?.id
-  })
-  const [datum, setDatum] = useState<DatumCode>(props.defaultDatum ?? DEFAULT_DATUM)
-  const [showSuspect, setShowSuspect] = useState(false)
+  useEffect(() => {
+    if (showInlineControls && controlsDrawerOpen) {
+      onCloseControlsDrawer?.()
+    }
+  }, [controlsDrawerOpen, onCloseControlsDrawer, showInlineControls])
 
-  const handleRemoveBarPanel = useCallback((stationId: string) => {
-    setBarPanels((prev) => prev.filter((id) => id !== stationId))
-  }, [])
-
-  const handleBarPanelSelectionChange = useCallback((next: string[]) => {
-    setBarPanels(next)
-  }, [])
-
-  const isoRange = useMemo(() => ({ start: toISO(range.start), end: toISO(range.end) }), [range])
-
+  const handleDrawerClose = useCallback(() => {
+    onCloseControlsDrawer?.()
+  }, [onCloseControlsDrawer])
   const ndbcStations = barPanels
   const estuaryStation = estuaryStationId ? stationMeta.get(estuaryStationId) : undefined
 
@@ -951,7 +745,43 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
   const firstErrorMessage = formatDashboardError(firstError)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, position: 'relative' }}>
+      {!showInlineControls && (
+        <Drawer
+          anchor="right"
+          open={drawerOpen}
+          onClose={handleDrawerClose}
+          ModalProps={{ keepMounted: true }}
+          sx={{ display: { xs: 'block', md: 'none' } }}
+        >
+          <Box
+            sx={{
+              width: { xs: 300, sm: 360 },
+              p: 2,
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                Dashboard Controls
+              </Typography>
+              <IconButton aria-label="Close controls" onClick={handleDrawerClose}>
+                <CloseRoundedIcon />
+              </IconButton>
+            </Stack>
+            <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1 }}>
+              <DashboardControls
+                pickerMinDate={pickerMinDate}
+                pickerMaxDate={pickerMaxDate}
+                onDateFieldChange={handleDateFieldChange}
+                panelCoverage={panelCoverage}
+              />
+            </Box>
+          </Box>
+        </Drawer>
+      )}
       <Card variant="outlined">
         <CardContent>
           <Typography variant="h6" gutterBottom>
@@ -977,98 +807,69 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
         </Alert>
       </Box>
       <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 4 }}>
-          {/* Controls */}
-          <Card variant="outlined">
-            <CardHeader
-              title="Controls"
-              subheader={formatRangeLabel(range.start, range.end)}
-              action={
-                loading ? (
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <CircularProgress size={18} />
-                    <Typography variant="body2">
-                      Refreshing National Oceanic and Atmospheric Administration (NOAA) feeds…
-                    </Typography>
-                  </Stack>
-                ) : undefined
-              }
-              sx={{
-                alignItems: { xs: 'flex-start', md: 'center' },
-                flexDirection: { xs: 'column', md: 'row' },
-                '& .MuiCardHeader-action': {
-                  alignSelf: { xs: 'flex-start', md: 'center' },
-                  marginTop: { xs: 1, md: 0 },
-                  marginRight: 0,
-                },
-              }}
-            />
-            <CardContent>
-              <Stack spacing={2}>
-                <Box>
-                  <FormLabel>Time Range (last {DATE_RANGE_WINDOW_DAYS} days)</FormLabel>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
-                    <TextField
-                      label="From"
-                      type="datetime-local"
-                      value={formatDateTimeLocalInput(range.start)}
-                      onChange={handleDateFieldChange('start')}
-                      InputLabelProps={{ shrink: true }}
-                      fullWidth
-                      inputProps={{
-                        min: formatDateTimeLocalInput(pickerMinDate),
-                        max: formatDateTimeLocalInput(pickerMaxDate),
-                      }}
-                    />
-                    <TextField
-                      label="To"
-                      type="datetime-local"
-                      value={formatDateTimeLocalInput(range.end)}
-                      onChange={handleDateFieldChange('end')}
-                      InputLabelProps={{ shrink: true }}
-                      fullWidth
-                      inputProps={{
-                        min: formatDateTimeLocalInput(pickerMinDate),
-                        max: formatDateTimeLocalInput(pickerMaxDate),
-                      }}
-                    />
-                  </Stack>
+        <Grid size={{ xs: 12, md: 3 }} sx={{ order: { xs: 1, md: 2 } }}>
+          <Stack spacing={2}>
+            {showInlineControls && (
+              <Card variant="outlined">
+                <CardHeader
+                  title="Controls"
+                  subheader={formatRangeLabel(range.start, range.end)}
+                  action={
+                    loading ? (
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <CircularProgress size={18} />
+                        <Typography variant="body2">
+                          Refreshing National Oceanic and Atmospheric Administration (NOAA) feeds…
+                        </Typography>
+                      </Stack>
+                    ) : undefined
+                  }
+                  sx={{
+                    alignItems: { xs: 'flex-start', md: 'center' },
+                    flexDirection: { xs: 'column', md: 'row' },
+                    '& .MuiCardHeader-action': {
+                      alignSelf: { xs: 'flex-start', md: 'center' },
+                      marginTop: { xs: 1, md: 0 },
+                      marginRight: 0,
+                    },
+                  }}
+                />
+                <CardContent>
+                  <DashboardControls
+                    pickerMinDate={pickerMinDate}
+                    pickerMaxDate={pickerMaxDate}
+                    onDateFieldChange={handleDateFieldChange}
+                    panelCoverage={panelCoverage}
+                  />
+                </CardContent>
+              </Card>
+            )}
+
+            <Card variant="outlined">
+              <CardHeader title="Map" subheader="Coming soon" />
+              <CardContent>
+                <Box
+                  sx={{
+                    height: 180,
+                    borderRadius: 1,
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    bgcolor: 'action.hover',
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    NOAA basemap placeholder
+                  </Typography>
                 </Box>
-
-                <BarStationSelector value={barPanels} onChange={handleBarPanelSelectionChange} />
-                <EstuaryStationSelector value={estuaryStationId} onChange={setEstuaryStationId} />
-                <PanelCoverageLegend entries={panelCoverage} />
-
-                <DatumToggle datum={datum} onChange={setDatum} />
-                <QcToggle checked={showSuspect} onChange={setShowSuspect} />
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card variant="outlined" sx={{ mt: 2 }}>
-            <CardHeader title="Map" subheader="Coming soon" />
-            <CardContent>
-              <Box
-                sx={{
-                  height: 180,
-                  borderRadius: 1,
-                  border: '1px dashed',
-                  borderColor: 'divider',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: 'action.hover',
-                }}
-              >
-                <Typography variant="body2" color="text.secondary">
-                  NOAA basemap placeholder
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </Stack>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 8 }}>
+        <Grid size={{ xs: 12, md: 9 }} sx={{ order: { xs: 2, md: 1 } }}>
           <Stack spacing={2}>
             {firstErrorMessage && <Alert severity="error">{firstErrorMessage}</Alert>}
 
