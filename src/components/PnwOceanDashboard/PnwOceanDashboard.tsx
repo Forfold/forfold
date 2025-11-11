@@ -1,21 +1,7 @@
 import { type ChangeEvent, useCallback, useEffect, useMemo, useRef } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
-import {
-  Alert,
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  Chip,
-  CircularProgress,
-  Drawer,
-  Grid,
-  IconButton,
-  Stack,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import { Alert, Box, Chip, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -43,24 +29,17 @@ import {
   type SliderRange,
   useDashboardControls,
 } from './ControlsContext'
-import {
-  DashboardControls,
-  type PanelCoverageEntry,
-  type PanelCoverageStatus,
-} from './components/DashboardControls'
+import { ChartCard } from './components/ChartCard'
+import { DashboardControlsDrawer } from './components/DashboardControlsDrawer'
+import { DashboardControlsPanel } from './components/DashboardControlsPanel'
+import { DashboardHeaderCard } from './components/DashboardHeaderCard'
+import { type PanelCoverageEntry, type PanelCoverageStatus } from './components/DashboardControls'
+import { MapCard } from './components/MapCard'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
 const BUOY_COLOR_PALETTE = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
 const BUOY_PANEL_COLORS = ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4']
-const CHART_CARD_SX = {
-  display: 'flex',
-  flexDirection: 'column',
-  height: '100%',
-  width: '100%',
-} as const
-const CHART_CARD_CONTENT_SX = { flexGrow: 1, display: 'flex', flexDirection: 'column' } as const
-
 type DashboardWithDrawerProps = PnwOceanDashboardProps & {
   controlsDrawerOpen?: boolean
   onCloseControlsDrawer?: () => void
@@ -497,12 +476,12 @@ function DashboardContent({
     if (!barPanels.length) {
       return [
         <Grid key="bar-empty" size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
-          <Card variant="outlined" sx={CHART_CARD_SX}>
-            <CardHeader title="Bar Conditions" subheader="Wave + wind" />
-            <CardContent sx={CHART_CARD_CONTENT_SX}>
-              <PanelEmptyState message="Select a buoy in Controls to create a Bar Conditions panel." />
-            </CardContent>
-          </Card>
+          <ChartCard
+            header={{ title: 'Bar Conditions', subheader: 'Wave + wind' }}
+            contentProps={{ sx: { justifyContent: 'center' } }}
+          >
+            <PanelEmptyState message="Select a buoy in Controls to create a Bar Conditions panel." />
+          </ChartCard>
         </Grid>,
       ]
     }
@@ -523,6 +502,10 @@ function DashboardContent({
           </IconButton>
         </span>
       )
+      const baseCardSx = {
+        bgcolor: panelBgColor,
+        transition: 'background-color 200ms ease',
+      }
 
       const waveCard = (
         <Grid
@@ -530,31 +513,22 @@ function DashboardContent({
           size={{ xs: 12, md: 6 }}
           sx={{ display: 'flex', width: '100%' }}
         >
-          <Card
-            variant="outlined"
-            sx={{
-              ...CHART_CARD_SX,
-              bgcolor: panelBgColor,
-              transition: 'background-color 200ms ease',
+          <ChartCard
+            header={{
+              title: `Bar Conditions · ${stationLabel}`,
+              subheader: 'Wave Height & Period',
+              action: disableRemoval ? (
+                removeButton
+              ) : (
+                <Tooltip title="Remove panel">{removeButton}</Tooltip>
+              ),
             }}
+            sx={baseCardSx}
           >
-            <CardHeader
-              title={`Bar Conditions · ${stationLabel}`}
-              subheader="Wave Height & Period"
-              action={
-                disableRemoval ? (
-                  removeButton
-                ) : (
-                  <Tooltip title="Remove panel">{removeButton}</Tooltip>
-                )
-              }
-            />
-            <CardContent sx={CHART_CARD_CONTENT_SX}>
-              <Box sx={{ flexGrow: 1 }}>
-                <EChartCanvas option={buildWaveChartOption(stationId)} height={260} />
-              </Box>
-            </CardContent>
-          </Card>
+            <Box sx={{ flexGrow: 1 }}>
+              <EChartCanvas option={buildWaveChartOption(stationId)} height={260} />
+            </Box>
+          </ChartCard>
         </Grid>
       )
 
@@ -564,21 +538,14 @@ function DashboardContent({
           size={{ xs: 12, md: 6 }}
           sx={{ display: 'flex', width: '100%' }}
         >
-          <Card
-            variant="outlined"
-            sx={{
-              ...CHART_CARD_SX,
-              bgcolor: panelBgColor,
-              transition: 'background-color 200ms ease',
-            }}
+          <ChartCard
+            header={{ title: `Bar Conditions · ${stationLabel}`, subheader: 'Winds' }}
+            sx={baseCardSx}
           >
-            <CardHeader title={`Bar Conditions · ${stationLabel}`} subheader="Winds" />
-            <CardContent sx={CHART_CARD_CONTENT_SX}>
-              <Box sx={{ flexGrow: 1 }}>
-                <EChartCanvas option={buildWindChartOption(stationId)} height={220} />
-              </Box>
-            </CardContent>
-          </Card>
+            <Box sx={{ flexGrow: 1 }}>
+              <EChartCanvas option={buildWindChartOption(stationId)} height={220} />
+            </Box>
+          </ChartCard>
         </Grid>
       )
 
@@ -721,69 +688,21 @@ function DashboardContent({
     estuaryError ||
     upriverQueries.find((query) => query.error)?.error
   const firstErrorMessage = formatDashboardError(firstError)
+  const rangeLabel = formatRangeLabel(range.start, range.end)
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, position: 'relative' }}>
       {!showInlineControls && (
-        <Drawer
-          anchor="right"
+        <DashboardControlsDrawer
           open={drawerOpen}
           onClose={handleDrawerClose}
-          ModalProps={{ keepMounted: true }}
-          sx={{ display: { xs: 'block', md: 'none' } }}
-        >
-          <Box
-            sx={{
-              width: { xs: 300, sm: 360 },
-              p: 2,
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ mb: 2 }}
-            >
-              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-                Dashboard Controls
-              </Typography>
-              <IconButton aria-label="Close controls" onClick={handleDrawerClose}>
-                <CloseRoundedIcon />
-              </IconButton>
-            </Stack>
-            <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 1 }}>
-              <DashboardControls
-                pickerMinDate={pickerMinDate}
-                pickerMaxDate={pickerMaxDate}
-                onDateFieldChange={handleDateFieldChange}
-                panelCoverage={panelCoverage}
-              />
-            </Box>
-          </Box>
-        </Drawer>
+          pickerMinDate={pickerMinDate}
+          pickerMaxDate={pickerMaxDate}
+          onDateFieldChange={handleDateFieldChange}
+          panelCoverage={panelCoverage}
+        />
       )}
-      <Card variant="outlined">
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Pacific Northwest ocean snapshot
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            Wave and wind panels aggregate near-real-time National Data Buoy Center (NDBC) buoy
-            feeds. The estuary chart compares Center for Operational Oceanographic Products and
-            Services (CO-OPS) observations with predictions for the estuary station you pick. The
-            upriver view shows forecasted water levels for Portland, Oregon (OR) and Vancouver,
-            Washington (WA).
-          </Typography>
-          <Typography variant="body2">
-            Use the Controls card to choose stations, set a From/To window within the last 30 days,
-            switch the graph unit for consistent vertical datums, and toggle quality control (QC)
-            flags when inspecting suspect readings.
-          </Typography>
-        </CardContent>
-      </Card>
+      <DashboardHeaderCard />
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
         <Alert sx={{ width: '100%' }} severity="info">
           This view is under construction!
@@ -793,62 +712,17 @@ function DashboardContent({
         <Grid size={{ xs: 12, md: 3 }} sx={{ order: { xs: 1, md: 2 } }}>
           <Stack spacing={2}>
             {showInlineControls && (
-              <Card variant="outlined">
-                <CardHeader
-                  title="Controls"
-                  subheader={formatRangeLabel(range.start, range.end)}
-                  action={
-                    loading ? (
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <CircularProgress size={18} />
-                        <Typography variant="body2">
-                          Refreshing National Oceanic and Atmospheric Administration (NOAA) feeds…
-                        </Typography>
-                      </Stack>
-                    ) : undefined
-                  }
-                  sx={{
-                    alignItems: { xs: 'flex-start', md: 'center' },
-                    flexDirection: { xs: 'column', md: 'row' },
-                    '& .MuiCardHeader-action': {
-                      alignSelf: { xs: 'flex-start', md: 'center' },
-                      marginTop: { xs: 1, md: 0 },
-                      marginRight: 0,
-                    },
-                  }}
-                />
-                <CardContent>
-                  <DashboardControls
-                    pickerMinDate={pickerMinDate}
-                    pickerMaxDate={pickerMaxDate}
-                    onDateFieldChange={handleDateFieldChange}
-                    panelCoverage={panelCoverage}
-                  />
-                </CardContent>
-              </Card>
+              <DashboardControlsPanel
+                pickerMinDate={pickerMinDate}
+                pickerMaxDate={pickerMaxDate}
+                onDateFieldChange={handleDateFieldChange}
+                panelCoverage={panelCoverage}
+                rangeLabel={rangeLabel}
+                loading={loading}
+              />
             )}
 
-            <Card variant="outlined">
-              <CardHeader title="Map" subheader="Coming soon" />
-              <CardContent>
-                <Box
-                  sx={{
-                    height: 180,
-                    borderRadius: 1,
-                    border: '1px dashed',
-                    borderColor: 'divider',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    bgcolor: 'action.hover',
-                  }}
-                >
-                  <Typography variant="body2" color="text.secondary">
-                    NOAA basemap placeholder
-                  </Typography>
-                </Box>
-              </CardContent>
-            </Card>
+            <MapCard />
           </Stack>
         </Grid>
 
@@ -860,47 +734,45 @@ function DashboardContent({
               {barPanelCards}
 
               <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
-                <Card variant="outlined" sx={CHART_CARD_SX}>
-                  <CardHeader
-                    title={estuaryCardTitle}
-                    subheader={
-                      estuaryDatum ? `Datum ${estuaryDatum}` : 'Choose a CO-OPS gauge in Controls'
-                    }
-                    action={
+                <ChartCard
+                  header={{
+                    title: estuaryCardTitle,
+                    subheader: estuaryDatum
+                      ? `Datum ${estuaryDatum}`
+                      : 'Choose a CO-OPS gauge in Controls',
+                    action: (
                       <StationChipRow
                         stationIds={estuaryStationId ? [estuaryStationId] : []}
                         emptyLabel="Pick a CO-OPS gauge"
                       />
-                    }
-                  />
-                  <CardContent sx={CHART_CARD_CONTENT_SX}>
-                    {estuaryStationId && estuaryDatum ? (
-                      <Box sx={{ flexGrow: 1 }}>
-                        <EChartCanvas option={estuaryChartOption} height={320} />
-                      </Box>
-                    ) : (
-                      <PanelEmptyState message="Choose a CO-OPS estuary gauge in Controls to compare observed vs. predicted water levels." />
-                    )}
-                  </CardContent>
-                </Card>
+                    ),
+                  }}
+                >
+                  {estuaryStationId && estuaryDatum ? (
+                    <Box sx={{ flexGrow: 1 }}>
+                      <EChartCanvas option={estuaryChartOption} height={320} />
+                    </Box>
+                  ) : (
+                    <PanelEmptyState message="Choose a CO-OPS estuary gauge in Controls to compare observed vs. predicted water levels." />
+                  )}
+                </ChartCard>
               </Grid>
 
               <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
-                <Card variant="outlined" sx={CHART_CARD_SX}>
-                  <CardHeader
-                    title="Upriver Predictions"
-                    subheader="Stations fixed to Portland (9439221) · Vancouver (9440083)"
-                    action={<StationChipRow stationIds={UPRIVER_STATIONS} />}
-                  />
-                  <CardContent sx={CHART_CARD_CONTENT_SX}>
-                    <Box sx={{ flexGrow: 1 }}>
-                      <EChartCanvas option={upriverChartOption} height={320} />
-                    </Box>
-                    <Typography variant="caption" color="text.secondary">
-                      Times shown in local (LST/LDT) per CO-OPS response.
-                    </Typography>
-                  </CardContent>
-                </Card>
+                <ChartCard
+                  header={{
+                    title: 'Upriver Predictions',
+                    subheader: 'Stations fixed to Portland (9439221) · Vancouver (9440083)',
+                    action: <StationChipRow stationIds={UPRIVER_STATIONS} />,
+                  }}
+                >
+                  <Box sx={{ flexGrow: 1 }}>
+                    <EChartCanvas option={upriverChartOption} height={320} />
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Times shown in local (LST/LDT) per CO-OPS response.
+                  </Typography>
+                </ChartCard>
               </Grid>
             </Grid>
           </Stack>
