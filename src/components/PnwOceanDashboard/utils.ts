@@ -6,18 +6,35 @@ const REQUIRED_COLUMNS = ['YY', 'MM', 'DD', 'hh', 'mm']
 
 export function parseNdbcText(text: string, startISO?: string, endISO?: string): NdbcRow[] {
   const rows: NdbcRow[] = []
-  const lines = text.split(/\r?\n/).filter(Boolean)
-  const contentLines = lines.filter((line) => !line.startsWith('#'))
-  if (contentLines.length <= 1) return rows
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
 
-  const header = contentLines[0]
-  const columns = header
+  const headerLine =
+    lines.find(
+      (line) =>
+        line.startsWith('#') &&
+        REQUIRED_COLUMNS.every((col) => line.toUpperCase().includes(col.toUpperCase()))
+    ) ?? null
+
+  if (!headerLine) {
+    return rows
+  }
+
+  const columns = headerLine
+    .replace(/^#\s*/, '')
     .trim()
     .split(/\s+/)
     .map((col) => col.trim())
   const columnIndex = new Map(columns.map((col, idx) => [col, idx]))
 
   if (!REQUIRED_COLUMNS.every((col) => columnIndex.has(col))) {
+    return rows
+  }
+
+  const contentLines = lines.filter((line) => !line.startsWith('#'))
+  if (!contentLines.length) {
     return rows
   }
 
@@ -30,7 +47,7 @@ export function parseNdbcText(text: string, startISO?: string, endISO?: string):
   const start = startISO ? Date.parse(startISO) : undefined
   const end = endISO ? Date.parse(endISO) : undefined
 
-  for (let i = 1; i < contentLines.length; i += 1) {
+  for (let i = 0; i < contentLines.length; i += 1) {
     const parts = contentLines[i].trim().split(/\s+/)
     if (parts.length < columns.length) continue
 
