@@ -4,6 +4,14 @@ export const NDBC_REALTIME_URL = 'https://www.ndbc.noaa.gov/data/realtime2'
 export const COOPS_BASE_URL =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?application=codex&units=metric&format=json'
 
+const runtimeProxy = import.meta.env?.VITE_NDBC_PROXY as string | undefined
+export const NDBC_PROXY_CHAIN = [
+  runtimeProxy,
+  'https://cors.isomorphic-git.org/',
+  'https://thingproxy.freeboard.io/fetch/',
+  'https://api.allorigins.win/raw?url=',
+].filter(Boolean) as string[]
+
 export const DEFAULT_DATUM: DatumCode = 'MLLW'
 export const DATUM_OPTIONS: DatumCode[] = ['MLLW', 'NAVD88', 'CRD']
 export const DEFAULT_HISTORY_DAYS = 10

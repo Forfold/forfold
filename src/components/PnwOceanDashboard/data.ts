@@ -1,4 +1,4 @@
-import { COOPS_BASE_URL, NDBC_REALTIME_URL } from './constants'
+import { COOPS_BASE_URL, NDBC_PROXY_CHAIN, NDBC_REALTIME_URL } from './constants'
 import type { CoopsObs, CoopsPred, DatumCode, NdbcRow, TimePoint } from './types'
 import { parseNdbcText, prepTimeSeries, toQueryDateTime } from './utils'
 
@@ -18,15 +18,45 @@ async function fetchWithTimeout(url: string): Promise<Response> {
   }
 }
 
+async function fetchNdbcText(url: string) {
+  const response = await fetchWithTimeout(url)
+  return response.text()
+}
+
+function buildProxyUrl(proxy: string, target: string) {
+  if (!proxy) return target
+  if (proxy.includes('{url}')) {
+    return proxy.replace('{url}', encodeURIComponent(target))
+  }
+  if (proxy.includes('allorigins')) {
+    return `${proxy}${encodeURIComponent(target)}`
+  }
+  if (/url=?$/i.test(proxy) || proxy.endsWith('?url=')) {
+    return `${proxy}${encodeURIComponent(target)}`
+  }
+  return proxy.endsWith('/') ? `${proxy}${target}` : `${proxy}${target}`
+}
+
 export async function fetchNdbc(
   stationId: string,
   startISO?: string,
   endISO?: string
 ): Promise<NdbcRow[]> {
   const url = `${NDBC_REALTIME_URL}/${stationId}.txt`
-  const response = await fetchWithTimeout(url)
-  const text = await response.text()
-  return parseNdbcText(text, startISO, endISO)
+  const attempts = [undefined, ...NDBC_PROXY_CHAIN]
+  const errors: string[] = []
+
+  for (const proxy of attempts) {
+    const target = proxy ? buildProxyUrl(proxy, url) : url
+    try {
+      const text = await fetchNdbcText(target)
+      return parseNdbcText(text, startISO, endISO)
+    } catch (error) {
+      errors.push(error instanceof Error ? error.message : String(error))
+    }
+  }
+
+  throw new Error(`NDBC fetch failed for ${stationId}: ${errors.join(' | ')}`)
 }
 
 type CoopsParams = {

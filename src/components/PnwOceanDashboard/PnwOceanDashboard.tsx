@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import ReactECharts from 'echarts-for-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
 import {
   Alert,
@@ -56,6 +56,50 @@ function computeDefaultRange(props: PnwOceanDashboardProps) {
 }
 
 type SliderRange = [number, number]
+
+type EChartCanvasProps = {
+  option: EChartsOption
+  height: number
+}
+
+function EChartCanvas({ option, height }: EChartCanvasProps) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const chartRef = useRef<echarts.ECharts | null>(null)
+
+  useEffect(() => {
+    const node = containerRef.current
+    if (!node) return undefined
+    const chart = echarts.init(node)
+    chartRef.current = chart
+
+    const handleWindowResize = () => chart.resize()
+    let resizeObserver: ResizeObserver | null = null
+
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => chart.resize())
+      resizeObserver.observe(node)
+    } else {
+      window.addEventListener('resize', handleWindowResize)
+    }
+
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.unobserve(node)
+        resizeObserver.disconnect()
+      } else {
+        window.removeEventListener('resize', handleWindowResize)
+      }
+      chart.dispose()
+      chartRef.current = null
+    }
+  }, [])
+
+  useEffect(() => {
+    chartRef.current?.setOption(option, { notMerge: true, lazyUpdate: false })
+  }, [option])
+
+  return <Box ref={containerRef} sx={{ width: '100%', height }} />
+}
 
 function StationPicker({
   value,
@@ -554,14 +598,14 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       Wave Height & Period
                     </Typography>
-                    <ReactECharts option={waveChartOption} style={{ height: 260 }} />
+                    <EChartCanvas option={waveChartOption} height={260} />
                   </Box>
                   <Divider flexItem />
                   <Box>
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       Winds
                     </Typography>
-                    <ReactECharts option={windChartOption} style={{ height: 220 }} />
+                    <EChartCanvas option={windChartOption} height={220} />
                   </Box>
                 </Stack>
               </CardContent>
@@ -570,14 +614,14 @@ export function PnwOceanDashboard(props: PnwOceanDashboardProps) {
             <Card variant="outlined">
               <CardHeader title="Estuary · Astoria (9439040)" subheader={`Datum ${estuaryDatum}`} />
               <CardContent>
-                <ReactECharts option={estuaryChartOption} style={{ height: 320 }} />
+                <EChartCanvas option={estuaryChartOption} height={320} />
               </CardContent>
             </Card>
 
             <Card variant="outlined">
               <CardHeader title="Upriver Predictions" subheader="Portland + Vancouver" />
               <CardContent>
-                <ReactECharts option={upriverChartOption} style={{ height: 320 }} />
+                <EChartCanvas option={upriverChartOption} height={320} />
                 <Typography variant="caption" color="text.secondary">
                   Times shown in local (LST/LDT) per CO-OPS response.
                 </Typography>
