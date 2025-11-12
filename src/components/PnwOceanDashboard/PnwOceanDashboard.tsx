@@ -784,8 +784,6 @@ function DashboardContent({
           panelCoverage={panelCoverage}
         />
       )}
-      <DashboardHeaderCard />
-
       <Grid container spacing={{ xs: 1, md: 2 }}>
         <Grid size={{ xs: 12, md: 3 }} sx={{ order: { xs: 1, md: 2 } }}>
           <Stack spacing={2}>
@@ -809,6 +807,10 @@ function DashboardContent({
             {firstErrorMessage && <Alert severity="error">{firstErrorMessage}</Alert>}
 
             <Grid container spacing={{ xs: 1, md: 2 }} alignItems="stretch">
+              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+                <DashboardHeaderCard />
+              </Grid>
+
               {barPanelCards}
 
               <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
