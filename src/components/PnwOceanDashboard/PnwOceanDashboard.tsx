@@ -48,13 +48,14 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 const BUOY_COLOR_PALETTE = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
 const BUOY_PANEL_COLORS = ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4']
-const BAR_CARD_VARIANTS = ['wave', 'wind'] as const
+const BAR_CARD_VARIANTS = ['wave', 'period', 'wind'] as const
 type BarCardVariant = (typeof BAR_CARD_VARIANTS)[number]
 type BarCardFlags = Record<BarCardVariant, boolean>
 type BarCardVisibilityState = Record<string, BarCardFlags>
 
 const BAR_CARD_FLAGS_DEFAULT: BarCardFlags = {
   wave: true,
+  period: true,
   wind: true,
 }
 
@@ -471,45 +472,51 @@ function DashboardContent({
     [barPanels]
   )
 
-  const buildWaveChartOption = useCallback(
+  const buildWaveHeightChartOption = useCallback(
     (stationId: string) => {
       const color = getBuoyColor(stationId)
       const wvht = waveSeries[stationId]?.WVHT ?? []
-      const dpd = waveSeries[stationId]?.DPD ?? []
-      const series: LineSeriesOption[] = []
-      if (wvht.length) {
-        series.push({
-          name: 'Wave Height (m)',
-          type: 'line',
-          showSymbol: false,
-          itemStyle: { color },
-          data: toSeriesTuples(wvht),
-          smooth: true,
-          yAxisIndex: 0,
-        })
-      }
-      if (dpd.length) {
-        series.push({
-          name: 'Dominant Period (s)',
-          type: 'line',
-          showSymbol: false,
-          lineStyle: { type: 'dashed' },
-          itemStyle: { color },
-          data: toSeriesTuples(dpd),
-          smooth: true,
-          yAxisIndex: 1,
-        })
-      }
-      if (!series.length) {
+      if (!wvht.length) {
         return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
       }
       return buildLineOption({
         range: rangeSlider,
-        series,
-        yAxes: [
-          { type: 'value', name: 'Wave Height (m)' },
-          { type: 'value', name: 'Period (s)', position: 'right' },
+        series: [
+          {
+            name: 'Wave Height (m)',
+            type: 'line',
+            showSymbol: false,
+            itemStyle: { color },
+            data: toSeriesTuples(wvht),
+            smooth: true,
+          },
         ],
+        yAxes: [{ type: 'value', name: 'Wave Height (m)' }],
+      })
+    },
+    [getBuoyColor, rangeSlider, waveSeries]
+  )
+
+  const buildPeriodChartOption = useCallback(
+    (stationId: string) => {
+      const color = getBuoyColor(stationId)
+      const dpd = waveSeries[stationId]?.DPD ?? []
+      if (!dpd.length) {
+        return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+      }
+      return buildLineOption({
+        range: rangeSlider,
+        series: [
+          {
+            name: 'Dominant Period (s)',
+            type: 'line',
+            showSymbol: false,
+            itemStyle: { color },
+            data: toSeriesTuples(dpd),
+            smooth: true,
+          },
+        ],
+        yAxes: [{ type: 'value', name: 'Period (s)' }],
       })
     },
     [getBuoyColor, rangeSlider, waveSeries]
@@ -563,7 +570,11 @@ function DashboardContent({
 
       const renderCloseButton = (variant: BarCardVariant) => {
         const tooltipLabel =
-          variant === 'wave' ? 'Hide wave height & period card' : 'Hide winds card'
+          variant === 'wave'
+            ? 'Hide wave height card'
+            : variant === 'period'
+              ? 'Hide dominant period card'
+              : 'Hide winds card'
         return (
           <Tooltip title={tooltipLabel}>
             <IconButton
@@ -594,13 +605,36 @@ function DashboardContent({
             <ChartCard
               header={{
                 title: `Bar Conditions · ${stationLabel}`,
-                subheader: 'Wave Height & Period',
+                subheader: 'Wave Height',
                 action: renderCloseButton('wave'),
               }}
               sx={baseCardSx}
             >
               <Box sx={{ flexGrow: 1 }}>
-                <EChartCanvas option={buildWaveChartOption(stationId)} height={260} />
+                <EChartCanvas option={buildWaveHeightChartOption(stationId)} height={240} />
+              </Box>
+            </ChartCard>
+          </Grid>
+        )
+      }
+
+      if (stationCards.period) {
+        cards.push(
+          <Grid
+            key={`${stationId}-period`}
+            size={{ xs: 12, md: 6 }}
+            sx={{ display: 'flex', width: '100%' }}
+          >
+            <ChartCard
+              header={{
+                title: `Bar Conditions · ${stationLabel}`,
+                subheader: 'Dominant Period',
+                action: renderCloseButton('period'),
+              }}
+              sx={baseCardSx}
+            >
+              <Box sx={{ flexGrow: 1 }}>
+                <EChartCanvas option={buildPeriodChartOption(stationId)} height={220} />
               </Box>
             </ChartCard>
           </Grid>
@@ -635,7 +669,8 @@ function DashboardContent({
   }, [
     barCardVisibility,
     barPanels,
-    buildWaveChartOption,
+    buildWaveHeightChartOption,
+    buildPeriodChartOption,
     buildWindChartOption,
     getBuoyPanelColor,
     handleCloseBarCard,
