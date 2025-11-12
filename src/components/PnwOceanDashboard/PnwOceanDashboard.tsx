@@ -1,4 +1,12 @@
-import { type ChangeEvent, useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+  type ChangeEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
 import { Alert, Box, Chip, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material'
@@ -40,6 +48,20 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 const BUOY_COLOR_PALETTE = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
 const BUOY_PANEL_COLORS = ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4']
+const BAR_CARD_VARIANTS = ['wave', 'wind'] as const
+type BarCardVariant = (typeof BAR_CARD_VARIANTS)[number]
+type BarCardFlags = Record<BarCardVariant, boolean>
+type BarCardVisibilityState = Record<string, BarCardFlags>
+
+const BAR_CARD_FLAGS_DEFAULT: BarCardFlags = {
+  wave: true,
+  wind: true,
+}
+
+const createBarCardFlags = (): BarCardFlags => ({ ...BAR_CARD_FLAGS_DEFAULT })
+
+const hasActiveBarCards = (flags: BarCardFlags | undefined) =>
+  BAR_CARD_VARIANTS.some((variant) => Boolean(flags?.[variant]))
 type DashboardWithDrawerProps = PnwOceanDashboardProps & {
   controlsDrawerOpen?: boolean
   onCloseControlsDrawer?: () => void
@@ -255,6 +277,51 @@ function DashboardContent({
     rangeSlider,
     handleRemoveBarPanel,
   } = useDashboardControls()
+
+  const [barCardVisibility, setBarCardVisibility] = useState<BarCardVisibilityState>(() => {
+    const initial: BarCardVisibilityState = {}
+    barPanels.forEach((stationId) => {
+      initial[stationId] = createBarCardFlags()
+    })
+    return initial
+  })
+
+  useEffect(() => {
+    setBarCardVisibility((prev) => {
+      let changed = false
+      const next: BarCardVisibilityState = {}
+      barPanels.forEach((stationId) => {
+        const existing = prev[stationId]
+        if (existing) {
+          next[stationId] = existing
+        } else {
+          next[stationId] = createBarCardFlags()
+          changed = true
+        }
+      })
+      if (Object.keys(prev).length !== Object.keys(next).length) {
+        changed = true
+      }
+      return changed ? next : prev
+    })
+  }, [barPanels])
+
+  const handleCloseBarCard = useCallback(
+    (stationId: string, variant: BarCardVariant) => {
+      setBarCardVisibility((prev) => {
+        const stationFlags = prev[stationId]
+        if (!stationFlags?.[variant]) return prev
+        const nextFlags: BarCardFlags = { ...stationFlags, [variant]: false }
+        if (hasActiveBarCards(nextFlags)) {
+          return { ...prev, [stationId]: nextFlags }
+        }
+        const { [stationId]: _removed, ...rest } = prev
+        handleRemoveBarPanel(stationId)
+        return rest
+      })
+    },
+    [handleRemoveBarPanel]
+  )
 
   const pickerMaxDate = new Date()
   const pickerMinDate = new Date(pickerMaxDate.getTime() - DATE_RANGE_WINDOW_DAYS * DAY_MS)
@@ -488,75 +555,90 @@ function DashboardContent({
 
     return barPanels.flatMap((stationId) => {
       const stationLabel = describeStation(stationId)
-      const disableRemoval = barPanels.length <= 1
       const panelBgColor = getBuoyPanelColor(stationId)
-      const removeButton = (
-        <span>
-          <IconButton
-            size="small"
-            aria-label="Remove buoy panel"
-            onClick={() => handleRemoveBarPanel(stationId)}
-            disabled={disableRemoval}
-          >
-            <CloseRoundedIcon fontSize="small" />
-          </IconButton>
-        </span>
-      )
+      const stationCards = barCardVisibility[stationId] ?? BAR_CARD_FLAGS_DEFAULT
+      if (!hasActiveBarCards(stationCards)) {
+        return []
+      }
+
+      const renderCloseButton = (variant: BarCardVariant) => {
+        const tooltipLabel =
+          variant === 'wave' ? 'Hide wave height & period card' : 'Hide winds card'
+        return (
+          <Tooltip title={tooltipLabel}>
+            <IconButton
+              size="small"
+              aria-label={`${tooltipLabel} for ${stationLabel}`}
+              onClick={() => handleCloseBarCard(stationId, variant)}
+            >
+              <CloseRoundedIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )
+      }
+
       const baseCardSx = {
         bgcolor: panelBgColor,
         transition: 'background-color 200ms ease',
       }
 
-      const waveCard = (
-        <Grid
-          key={`${stationId}-wave`}
-          size={{ xs: 12, md: 6 }}
-          sx={{ display: 'flex', width: '100%' }}
-        >
-          <ChartCard
-            header={{
-              title: `Bar Conditions · ${stationLabel}`,
-              subheader: 'Wave Height & Period',
-              action: disableRemoval ? (
-                removeButton
-              ) : (
-                <Tooltip title="Remove panel">{removeButton}</Tooltip>
-              ),
-            }}
-            sx={baseCardSx}
-          >
-            <Box sx={{ flexGrow: 1 }}>
-              <EChartCanvas option={buildWaveChartOption(stationId)} height={260} />
-            </Box>
-          </ChartCard>
-        </Grid>
-      )
+      const cards: ReactNode[] = []
 
-      const windCard = (
-        <Grid
-          key={`${stationId}-wind`}
-          size={{ xs: 12, md: 6 }}
-          sx={{ display: 'flex', width: '100%' }}
-        >
-          <ChartCard
-            header={{ title: `Bar Conditions · ${stationLabel}`, subheader: 'Winds' }}
-            sx={baseCardSx}
+      if (stationCards.wave) {
+        cards.push(
+          <Grid
+            key={`${stationId}-wave`}
+            size={{ xs: 12, md: 6 }}
+            sx={{ display: 'flex', width: '100%' }}
           >
-            <Box sx={{ flexGrow: 1 }}>
-              <EChartCanvas option={buildWindChartOption(stationId)} height={220} />
-            </Box>
-          </ChartCard>
-        </Grid>
-      )
+            <ChartCard
+              header={{
+                title: `Bar Conditions · ${stationLabel}`,
+                subheader: 'Wave Height & Period',
+                action: renderCloseButton('wave'),
+              }}
+              sx={baseCardSx}
+            >
+              <Box sx={{ flexGrow: 1 }}>
+                <EChartCanvas option={buildWaveChartOption(stationId)} height={260} />
+              </Box>
+            </ChartCard>
+          </Grid>
+        )
+      }
 
-      return [waveCard, windCard]
+      if (stationCards.wind) {
+        cards.push(
+          <Grid
+            key={`${stationId}-wind`}
+            size={{ xs: 12, md: 6 }}
+            sx={{ display: 'flex', width: '100%' }}
+          >
+            <ChartCard
+              header={{
+                title: `Bar Conditions · ${stationLabel}`,
+                subheader: 'Winds',
+                action: renderCloseButton('wind'),
+              }}
+              sx={baseCardSx}
+            >
+              <Box sx={{ flexGrow: 1 }}>
+                <EChartCanvas option={buildWindChartOption(stationId)} height={220} />
+              </Box>
+            </ChartCard>
+          </Grid>
+        )
+      }
+
+      return cards
     })
   }, [
+    barCardVisibility,
     barPanels,
     buildWaveChartOption,
     buildWindChartOption,
     getBuoyPanelColor,
-    handleRemoveBarPanel,
+    handleCloseBarCard,
   ])
 
   const estuaryChartOption = useMemo(() => {
