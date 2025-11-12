@@ -785,11 +785,7 @@ function DashboardContent({
         />
       )}
       <DashboardHeaderCard />
-      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-        <Alert sx={{ width: '100%' }} severity="info">
-          This view is under construction!
-        </Alert>
-      </Box>
+
       <Grid container spacing={{ xs: 1, md: 2 }}>
         <Grid size={{ xs: 12, md: 3 }} sx={{ order: { xs: 1, md: 2 } }}>
           <Stack spacing={2}>

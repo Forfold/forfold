@@ -8,15 +8,15 @@ export function DashboardHeaderCard() {
           Pacific Northwest ocean snapshot
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-          Wave and wind panels aggregate near-real-time National Data Buoy Center (NDBC) buoy feeds.
-          The estuary chart compares Center for Operational Oceanographic Products and Services
-          (CO-OPS) observations with predictions for the estuary station you pick. The upriver view
-          shows forecasted water levels for Portland, Oregon (OR) and Vancouver, Washington (WA).
+          Wave and wind panels aggregate near real-time NDBC (National Data Buoy Center) buoy feeds.
         </Typography>
-        <Typography variant="body2">
-          Use the Controls card to choose stations, set a From/To window within the last 30 days,
-          switch the graph unit for consistent vertical datums, and toggle quality control (QC)
-          flags when inspecting suspect readings.
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          The estuary chart compares CO-OPS (Center for Operational Oceanographic Products and
+          Services) observations with predictions for the estuary station you pick.
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          The upriver view shows forecasted water levels for Portland, Oregon and Vancouver,
+          Washington.
         </Typography>
       </CardContent>
     </Card>
