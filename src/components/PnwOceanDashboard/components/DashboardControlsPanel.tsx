@@ -30,7 +30,7 @@ export function DashboardControlsPanel({
           },
         }}
       />
-      <CardContent>
+      <CardContent sx={{ pt: 0 }}>
         <DashboardControls
           pickerMinDate={pickerMinDate}
           pickerMaxDate={pickerMaxDate}

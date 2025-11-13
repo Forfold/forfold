@@ -2,6 +2,7 @@ import { type ChangeEvent } from 'react'
 import {
   Box,
   Checkbox,
+  Divider,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -53,11 +54,17 @@ export function DashboardControls({
     handleBarPanelSelectionChange,
   } = useDashboardControls()
 
+  const _Divider = (
+    <Box sx={{ pt: 1, pb: 1 }}>
+      <Divider />
+    </Box>
+  )
+
   return (
     <Stack spacing={2}>
       <Box>
         <FormLabel>Time Range (last {DATE_RANGE_WINDOW_DAYS} days)</FormLabel>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
+        <Stack direction="column" spacing={2} sx={{ mt: 2 }}>
           <TextField
             label="From"
             type="datetime-local"
@@ -84,9 +91,11 @@ export function DashboardControls({
           />
         </Stack>
       </Box>
-
+      {_Divider}
       <BarStationSelector value={barPanels} onChange={handleBarPanelSelectionChange} />
+      {_Divider}
       <EstuaryStationSelector value={estuaryStationId} onChange={setEstuaryStationId} />
+      {_Divider}
       <DatumToggle datum={datum} onChange={setDatum} />
       <QcToggle checked={showSuspect} onChange={setShowSuspect} />
     </Stack>
@@ -109,9 +118,8 @@ function BarStationSelector({
 
   return (
     <FormControl component="fieldset" variant="standard">
-      <FormLabel component="legend">
-        Bar Conditions Buoys · National Data Buoy Center (NDBC)
-      </FormLabel>
+      <FormLabel component="legend">Bar Conditions Buoys</FormLabel>
+      <FormHelperText>National Data Buoy Center (NDBC)</FormHelperText>
       <FormGroup>
         {NDBC_STATION_OPTIONS.map((station) => (
           <FormControlLabel
@@ -135,10 +143,6 @@ function BarStationSelector({
           />
         ))}
       </FormGroup>
-      <FormHelperText>
-        Select multiple buoys to render parallel Bar Conditions panels. Removal updates both the
-        list and the panels below.
-      </FormHelperText>
     </FormControl>
   )
 }
@@ -154,9 +158,10 @@ function EstuaryStationSelector({
 
   return (
     <FormControl component="fieldset" disabled={!hasOptions}>
-      <FormLabel component="legend">
-        Estuary gauge · Center for Operational Oceanographic Products and Services (CO-OPS)
-      </FormLabel>
+      <FormLabel component="legend">Estuary Gauge</FormLabel>
+      <FormHelperText sx={{ ml: 0, mr: 0 }}>
+        Center for Operational Oceanographic Products and Services (CO-OPS)
+      </FormHelperText>
       {hasOptions ? (
         <RadioGroup
           value={value ?? ''}
@@ -189,11 +194,6 @@ function EstuaryStationSelector({
           No CO-OPS gauges configured.
         </Typography>
       )}
-      <FormHelperText>
-        {hasOptions
-          ? 'Pick one Center for Operational Oceanographic Products and Services (CO-OPS) gauge to populate the Estuary panel.'
-          : 'Add a CO-OPS gauge in constants.ts to enable this panel.'}
-      </FormHelperText>
     </FormControl>
   )
 }

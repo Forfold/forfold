@@ -50,19 +50,7 @@ export function StationLabelWithTooltip({
   const tooltipLabel = tooltip ?? buildTooltipLabel(stationId, label)
 
   return (
-    <Tooltip
-      title={tooltipLabel}
-      placement={placement}
-      slotProps={{
-        tooltip: {
-          sx: (theme) => ({
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.mode === 'light' ? 'white' : 'black',
-            fontWeight: 'bolder',
-          }),
-        },
-      }}
-    >
+    <Tooltip title={tooltipLabel} placement={placement}>
       <Typography
         component="span"
         variant={variant}

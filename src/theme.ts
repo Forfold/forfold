@@ -1,8 +1,9 @@
 import type { PaletteMode } from '@mui/material'
 import { createTheme, type PaletteOptions, type ThemeOptions } from '@mui/material/styles'
 
-const primaryMain = '#222D31'
-const secondaryMain = '#4E87A0'
+const primaryMainDark = '#E8A66C'
+const primaryMainLight = '#222D31'
+const secondaryMainLight = '#4E87A0'
 
 const brown = '#3D2500'
 const accentLight = '#E8C66D'
@@ -43,7 +44,7 @@ const buildPalette = (mode: PaletteMode): PaletteOptions => {
   if (mode === 'dark') {
     return {
       mode,
-      primary: { main: '#E8A66C', contrastText: '#03141C' },
+      primary: { main: primaryMainDark, contrastText: '#03141C' },
       secondary: { main: '#4E87A0', contrastText: '#05130F' },
       info: { main: '#67B1F4' },
       warning: { main: '#F4A261', contrastText: '#2E1300' },
@@ -55,13 +56,13 @@ const buildPalette = (mode: PaletteMode): PaletteOptions => {
 
   return {
     mode,
-    primary: { main: primaryMain, contrastText: '#FEFDF7' },
-    secondary: { main: secondaryMain, contrastText: '#FEFDF7' },
+    primary: { main: primaryMainLight, contrastText: '#FEFDF7' },
+    secondary: { main: secondaryMainLight, contrastText: '#FEFDF7' },
     info: { main: brown },
     warning: { main: '#6F3B3C', contrastText: '#FEFDF7' },
     background: { default: '#FDFBF7', paper: '#E7EDED' },
     text: { primary: '#1F2C31', secondary: 'rgba(31,44,49,0.65)' },
-    divider: primaryMain,
+    divider: primaryMainLight,
   }
 }
 
@@ -85,7 +86,7 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
       styleOverrides: {
         colorPrimary: {
           backgroundImage: 'none',
-          backgroundColor: isLight ? primaryMain : deepSlate,
+          backgroundColor: isLight ? primaryMainLight : deepSlate,
           color: '#F5FAFF',
           borderBottom: `1px solid ${isLight ? '#1B2428' : 'rgba(255,255,255,0.12)'}`,
         },
@@ -125,6 +126,19 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
       styleOverrides: {
         root: {
           border: `1px solid ${chipBorder}`,
+        },
+      },
+    },
+    MuiTooltip: {
+      defaultProps: {
+        slotProps: {
+          tooltip: {
+            sx: {
+              backgroundColor: isLight ? primaryMainLight : primaryMainDark,
+              color: isLight ? 'white' : 'black',
+              fontWeight: 'bolder',
+            },
+          },
         },
       },
     },
