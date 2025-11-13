@@ -1,25 +1,53 @@
-import { Suspense, useState } from 'react'
+import { Suspense, useCallback, useMemo, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Tabs, Tab, Toolbar, AppBar, Typography, IconButton } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import { theme } from '../../theme'
-import { About } from '../About'
-import Home from '../Home'
-import { Resume } from '../Resume'
-import { PnwOceanDashboard } from '../PnwOceanDashboard'
+import { Link as RouterLink, Outlet, useLocation, useOutletContext } from 'react-router-dom'
+
+const TAB_CONFIG = [
+  { label: 'HOME', path: '/' },
+  { label: 'RESUME', path: '/resume' },
+  { label: 'PNW OCEAN', path: '/pnw-ocean' },
+  { label: 'ABOUT', path: '/about' },
+] as const
+
+type TabPath = (typeof TAB_CONFIG)[number]['path']
+
+const normalizePathname = (pathname: string): TabPath => {
+  if (!pathname || pathname === '/') {
+    return '/'
+  }
+  const trimmed = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname
+  const match = TAB_CONFIG.find((tab) => tab.path === trimmed)
+  return match ? match.path : '/'
+}
+
+export type MainOutletContext = {
+  controlsDrawerOpen: boolean
+  closeControlsDrawer: () => void
+}
+
+export const useMainOutletContext = () => useOutletContext<MainOutletContext>()
 
 export function Main() {
-  const [value, setValue] = useState(0)
+  const location = useLocation()
+
+  const currentTab = useMemo(() => normalizePathname(location.pathname), [location.pathname])
   const [controlsDrawerOpen, setControlsDrawerOpen] = useState(false)
 
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue)
+  const isPnwRoute = currentTab === '/pnw-ocean'
 
-    if (newValue !== 2 && controlsDrawerOpen) {
-      setControlsDrawerOpen(false)
+  const handleOpenControlsDrawer = useCallback(() => {
+    if (isPnwRoute) {
+      setControlsDrawerOpen(true)
     }
-  }
+  }, [isPnwRoute])
+
+  const handleCloseControlsDrawer = useCallback(() => {
+    setControlsDrawerOpen(false)
+  }, [])
 
   return (
     <ThemeProvider theme={theme}>
@@ -45,8 +73,8 @@ export function Main() {
             <Typography
               variant="h6"
               noWrap
-              component="a"
-              href="/"
+              component={RouterLink}
+              to="/"
               sx={{
                 mr: 2,
                 display: { xs: 'none', md: 'flex' },
@@ -74,13 +102,17 @@ export function Main() {
                 centered
                 textColor="secondary"
                 indicatorColor="secondary"
-                value={value}
-                onChange={handleChange}
+                value={currentTab}
               >
-                <Tab value={0} label="HOME" />
-                <Tab value={1} label="RESUME" />
-                <Tab value={2} label="PNW OCEAN" />
-                <Tab value={3} label="ABOUT" />
+                {TAB_CONFIG.map((tab) => (
+                  <Tab
+                    key={tab.path}
+                    component={RouterLink}
+                    to={tab.path}
+                    value={tab.path}
+                    label={tab.label}
+                  />
+                ))}
               </Tabs>
             </Box>
 
@@ -88,8 +120,8 @@ export function Main() {
               color="inherit"
               edge="end"
               aria-label="Open dashboard controls"
-              onClick={() => setControlsDrawerOpen(true)}
-              sx={{ display: { xs: value === 2 ? 'inline-flex' : 'none', md: 'none' } }}
+              onClick={handleOpenControlsDrawer}
+              sx={{ display: { xs: isPnwRoute ? 'inline-flex' : 'none', md: 'none' } }}
             >
               <MenuRoundedIcon />
             </IconButton>
@@ -112,15 +144,9 @@ export function Main() {
           }}
         >
           <Suspense fallback={<div>Loading...</div>}>
-            {value === 0 && <Home />}
-            {value === 1 && <Resume />}
-            {value === 2 && (
-              <PnwOceanDashboard
-                controlsDrawerOpen={controlsDrawerOpen}
-                onCloseControlsDrawer={() => setControlsDrawerOpen(false)}
-              />
-            )}
-            {value === 3 && <About />}
+            <Outlet
+              context={{ controlsDrawerOpen, closeControlsDrawer: handleCloseControlsDrawer }}
+            />
           </Suspense>
         </Box>
       </Box>
