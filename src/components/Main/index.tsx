@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
-import { Box, Tabs, Tab, Grid, Toolbar, AppBar, Typography, IconButton } from '@mui/material'
+import { Box, Tabs, Tab, Toolbar, AppBar, Typography, IconButton } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
 import { theme } from '../../theme'
@@ -101,15 +101,15 @@ export function Main() {
         {/* Main content area */}
         <Toolbar />
 
-        <Grid
-          container
-          spacing={2}
+        <Box
           sx={{
             flex: 1, // take remaining vertical space
             display: 'flex',
             flexDirection: 'column',
             minHeight: 0, // let children shrink/scroll instead of forcing overflow
             overflow: 'hidden', // prevent this box from causing page scroll
+            width: '100%',
+            boxSizing: 'border-box',
             p: '2%',
           }}
         >
@@ -124,7 +124,7 @@ export function Main() {
             )}
             {value === 3 && <About />}
           </Suspense>
-        </Grid>
+        </Box>
       </Box>
     </ThemeProvider>
   )
