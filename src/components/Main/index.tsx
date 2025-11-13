@@ -1,9 +1,12 @@
-import { Suspense, useCallback, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
-import { Box, Tabs, Tab, Toolbar, AppBar, Typography, IconButton } from '@mui/material'
+import { AppBar, Box, IconButton, Tab, Tabs, Toolbar, Tooltip, Typography } from '@mui/material'
+import type { PaletteMode } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded'
-import { theme } from '../../theme'
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined'
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined'
+import { createAppTheme } from '../../theme'
 import { Link as RouterLink, Outlet, useLocation, useOutletContext } from 'react-router-dom'
 
 const TAB_CONFIG = [
@@ -31,13 +34,40 @@ export type MainOutletContext = {
 
 export const useMainOutletContext = () => useOutletContext<MainOutletContext>()
 
+const COLOR_MODE_STORAGE_KEY = 'forfold-color-mode'
+
+const getInitialColorMode = (): PaletteMode => {
+  if (typeof window === 'undefined') {
+    return 'light'
+  }
+  const stored = window.localStorage.getItem(COLOR_MODE_STORAGE_KEY)
+  if (stored === 'light' || stored === 'dark') {
+    return stored
+  }
+  if (typeof window.matchMedia === 'function') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return 'light'
+}
+
 export function Main() {
   const location = useLocation()
 
   const currentTab = useMemo(() => normalizePathname(location.pathname), [location.pathname])
+  const [colorMode, setColorMode] = useState<PaletteMode>(() => getInitialColorMode())
   const [controlsDrawerOpen, setControlsDrawerOpen] = useState(false)
+  const appTheme = useMemo(() => createAppTheme(colorMode), [colorMode])
 
   const isPnwRoute = currentTab === '/pnw-ocean'
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    window.localStorage.setItem(COLOR_MODE_STORAGE_KEY, colorMode)
+  }, [colorMode])
+
+  const handleToggleColorMode = useCallback(() => {
+    setColorMode((prev) => (prev === 'light' ? 'dark' : 'light'))
+  }, [])
 
   const handleOpenControlsDrawer = useCallback(() => {
     if (isPnwRoute) {
@@ -49,8 +79,11 @@ export function Main() {
     setControlsDrawerOpen(false)
   }, [])
 
+  const isDarkMode = colorMode === 'dark'
+  const colorModeButtonLabel = isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'
+
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={appTheme}>
       <CssBaseline />
 
       <Box
@@ -116,15 +149,32 @@ export function Main() {
               </Tabs>
             </Box>
 
-            <IconButton
-              color="inherit"
-              edge="end"
-              aria-label="Open dashboard controls"
-              onClick={handleOpenControlsDrawer}
-              sx={{ display: { xs: isPnwRoute ? 'inline-flex' : 'none', md: 'none' } }}
-            >
-              <MenuRoundedIcon />
-            </IconButton>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Tooltip title={colorModeButtonLabel} enterDelay={250}>
+                <IconButton
+                  color="inherit"
+                  aria-label={colorModeButtonLabel}
+                  aria-pressed={isDarkMode}
+                  onClick={handleToggleColorMode}
+                >
+                  {isDarkMode ? (
+                    <LightModeOutlinedIcon fontSize="small" />
+                  ) : (
+                    <DarkModeOutlinedIcon fontSize="small" />
+                  )}
+                </IconButton>
+              </Tooltip>
+
+              <IconButton
+                color="inherit"
+                edge="end"
+                aria-label="Open dashboard controls"
+                onClick={handleOpenControlsDrawer}
+                sx={{ display: { xs: isPnwRoute ? 'inline-flex' : 'none', md: 'none' } }}
+              >
+                <MenuRoundedIcon />
+              </IconButton>
+            </Box>
           </Toolbar>
         </AppBar>
 

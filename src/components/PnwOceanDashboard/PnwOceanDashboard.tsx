@@ -9,9 +9,18 @@ import {
 } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
-import { Alert, Box, CircularProgress, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  CircularProgress,
+  Grid,
+  IconButton,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import { useTheme } from '@mui/material/styles'
+import { alpha, useTheme } from '@mui/material/styles'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useQueries, useQuery } from '@tanstack/react-query'
 import {
@@ -47,11 +56,31 @@ import { MapCard } from './components/MapCard'
 const DAY_MS = 24 * 60 * 60 * 1000
 
 const BUOY_COLOR_PALETTE = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
-const BUOY_PANEL_COLORS = ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4']
+const BUOY_PANEL_COLOR_SETS: Record<'light' | 'dark', string[]> = {
+  light: ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4'],
+  dark: [
+    'rgba(11, 70, 88, 0.4)',
+    'rgba(129, 82, 17, 0.4)',
+    'rgba(21, 63, 112, 0.4)',
+    'rgba(154, 126, 12, 0.4)',
+  ],
+}
 const BAR_CARD_VARIANTS = ['wave', 'period', 'wind'] as const
 type BarCardVariant = (typeof BAR_CARD_VARIANTS)[number]
 type BarCardFlags = Record<BarCardVariant, boolean>
 type BarCardVisibilityState = Record<string, BarCardFlags>
+
+type ChartThemeTokens = {
+  backgroundColor: string
+  textColor: string
+  mutedTextColor: string
+  axisLineColor: string
+  gridLineColor: string
+  tooltipBackground: string
+  tooltipBorderColor: string
+  dataZoomHandleColor: string
+  dataZoomTrackColor: string
+}
 
 const BAR_CARD_FLAGS_DEFAULT: BarCardFlags = {
   wave: true,
@@ -67,6 +96,8 @@ type DashboardWithDrawerProps = PnwOceanDashboardProps & {
   controlsDrawerOpen?: boolean
   onCloseControlsDrawer?: () => void
 }
+
+const EMPTY_SERIES_MSG = 'No data in range.'
 
 function formatDashboardError(error: unknown) {
   if (!error) return undefined
@@ -187,48 +218,106 @@ function toMetricSeries(
   return lttb(series)
 }
 
-function buildLineOption({
-  range,
-  series,
-  yAxes,
-}: {
-  range: SliderRange
-  series: LineSeriesOption[]
-  yAxes?: YAXisComponentOption[]
-}): EChartsOption {
+function buildLineOption(
+  {
+    range,
+    series,
+    yAxes,
+  }: {
+    range: SliderRange
+    series: LineSeriesOption[]
+    yAxes?: YAXisComponentOption[]
+  },
+  chartTheme: ChartThemeTokens
+): EChartsOption {
   const normalizedYAxes: YAXisComponentOption[] = (yAxes ?? [{ type: 'value' }]).map((axis) => {
     const defaultAlign = axis.position === 'right' ? 'left' : 'right'
     const existingLabel = axis.axisLabel ?? {}
+    const axisLine = axis.axisLine ?? {}
+    const axisLineStyle = axisLine.lineStyle ?? {}
+    const splitLine = axis.splitLine ?? {}
+    const splitLineStyle = splitLine.lineStyle ?? {}
     return {
       ...axis,
       axisLabel: {
         ...existingLabel,
         margin: existingLabel.margin ?? 12,
         align: existingLabel.align ?? defaultAlign,
+        color: existingLabel.color ?? chartTheme.textColor,
+      },
+      axisLine: {
+        ...axisLine,
+        lineStyle: { ...axisLineStyle, color: chartTheme.axisLineColor },
+      },
+      splitLine: {
+        ...splitLine,
+        show: splitLine.show ?? true,
+        lineStyle: { ...splitLineStyle, color: chartTheme.gridLineColor },
       },
     } as YAXisComponentOption
   })
 
   return {
-    tooltip: { trigger: 'axis', axisPointer: { type: 'cross' } },
-    grid: { left: 50, right: 20, top: 20, bottom: 40 },
+    backgroundColor: chartTheme.backgroundColor,
+    textStyle: { color: chartTheme.textColor },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        lineStyle: { color: chartTheme.axisLineColor },
+        label: {
+          backgroundColor: chartTheme.tooltipBackground,
+          borderColor: chartTheme.tooltipBorderColor,
+          borderWidth: 1,
+          color: chartTheme.textColor,
+        },
+      },
+      backgroundColor: chartTheme.tooltipBackground,
+      borderColor: chartTheme.tooltipBorderColor,
+      textStyle: { color: chartTheme.textColor },
+    },
+    grid: { left: 50, right: 20, top: 24, bottom: 40 },
     xAxis: {
       type: 'time',
       min: range[0],
       max: range[1],
-      axisLabel: { inside: false, margin: 12 },
+      axisLabel: { inside: false, margin: 12, color: chartTheme.textColor },
+      axisLine: { lineStyle: { color: chartTheme.axisLineColor } },
+      splitLine: { show: true, lineStyle: { color: chartTheme.gridLineColor } },
     },
     yAxis: normalizedYAxes,
     series,
     dataZoom: [
       { type: 'inside', filterMode: 'none', minSpan: 10 },
-      { type: 'slider', height: 12, bottom: 10 },
+      {
+        type: 'slider',
+        height: 12,
+        bottom: 10,
+        textStyle: { color: chartTheme.textColor },
+        borderColor: chartTheme.axisLineColor,
+        handleStyle: { color: chartTheme.dataZoomHandleColor },
+        fillerColor: chartTheme.dataZoomTrackColor,
+        backgroundColor: chartTheme.backgroundColor,
+        moveHandleStyle: { color: chartTheme.dataZoomHandleColor },
+      },
     ],
-    legend: { top: 0 },
+    legend: {
+      top: 0,
+      textStyle: { color: chartTheme.textColor },
+      inactiveColor: chartTheme.mutedTextColor,
+    },
   }
 }
 
-const EMPTY_SERIES_MSG = 'No data in range.'
+const buildEmptyChartOption = (chartTheme: ChartThemeTokens): EChartsOption => ({
+  backgroundColor: chartTheme.backgroundColor,
+  title: {
+    text: EMPTY_SERIES_MSG,
+    left: 'center',
+    top: 'middle',
+    textStyle: { color: chartTheme.mutedTextColor },
+  },
+})
 
 export function PnwOceanDashboard(props: DashboardWithDrawerProps) {
   const { controlsDrawerOpen, onCloseControlsDrawer, ...initialProps } = props
@@ -311,6 +400,23 @@ function DashboardContent({
   const theme = useTheme()
   const showInlineControls = useMediaQuery(theme.breakpoints.up('md'))
   const drawerOpen = Boolean(!showInlineControls && controlsDrawerOpen)
+  const chartTheme = useMemo<ChartThemeTokens>(() => {
+    const isDark = theme.palette.mode === 'dark'
+    return {
+      backgroundColor: theme.palette.background.paper,
+      textColor: theme.palette.text.primary,
+      mutedTextColor: theme.palette.text.secondary,
+      axisLineColor: alpha(theme.palette.divider, isDark ? 0.85 : 0.6),
+      gridLineColor: alpha(isDark ? '#FFFFFF' : theme.palette.text.primary, isDark ? 0.18 : 0.08),
+      tooltipBackground: alpha(
+        isDark ? theme.palette.background.default : '#FFFFFF',
+        isDark ? 0.98 : 0.92
+      ),
+      tooltipBorderColor: alpha(isDark ? '#FFFFFF' : theme.palette.divider, isDark ? 0.3 : 0.5),
+      dataZoomHandleColor: theme.palette.primary.main,
+      dataZoomTrackColor: alpha(theme.palette.primary.main, isDark ? 0.3 : 0.18),
+    }
+  }, [theme])
 
   useEffect(() => {
     if (showInlineControls && controlsDrawerOpen) {
@@ -456,10 +562,11 @@ function DashboardContent({
   const getBuoyPanelColor = useCallback(
     (stationId: string) => {
       const index = barPanels.indexOf(stationId)
-      const paletteIndex = index >= 0 ? index % BUOY_PANEL_COLORS.length : 0
-      return BUOY_PANEL_COLORS[paletteIndex]
+      const palette = BUOY_PANEL_COLOR_SETS[theme.palette.mode] ?? BUOY_PANEL_COLOR_SETS.light
+      const paletteIndex = index >= 0 ? index % palette.length : 0
+      return palette[paletteIndex]
     },
-    [barPanels]
+    [barPanels, theme.palette.mode]
   )
 
   const buildWaveHeightChartOption = useCallback(
@@ -467,24 +574,27 @@ function DashboardContent({
       const color = getBuoyColor(stationId)
       const wvht = waveSeries[stationId]?.WVHT ?? []
       if (!wvht.length) {
-        return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+        return buildEmptyChartOption(chartTheme)
       }
-      return buildLineOption({
-        range: rangeSlider,
-        series: [
-          {
-            name: 'Wave Height (m)',
-            type: 'line',
-            showSymbol: false,
-            itemStyle: { color },
-            data: toSeriesTuples(wvht),
-            smooth: true,
-          },
-        ],
-        yAxes: [{ type: 'value', name: 'Wave Height (m)' }],
-      })
+      return buildLineOption(
+        {
+          range: rangeSlider,
+          series: [
+            {
+              name: 'Wave Height (m)',
+              type: 'line',
+              showSymbol: false,
+              itemStyle: { color },
+              data: toSeriesTuples(wvht),
+              smooth: true,
+            },
+          ],
+          yAxes: [{ type: 'value', name: 'Wave Height (m)' }],
+        },
+        chartTheme
+      )
     },
-    [getBuoyColor, rangeSlider, waveSeries]
+    [chartTheme, getBuoyColor, rangeSlider, waveSeries]
   )
 
   const buildPeriodChartOption = useCallback(
@@ -492,24 +602,27 @@ function DashboardContent({
       const color = getBuoyColor(stationId)
       const dpd = waveSeries[stationId]?.DPD ?? []
       if (!dpd.length) {
-        return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+        return buildEmptyChartOption(chartTheme)
       }
-      return buildLineOption({
-        range: rangeSlider,
-        series: [
-          {
-            name: 'Dominant Period (s)',
-            type: 'line',
-            showSymbol: false,
-            itemStyle: { color },
-            data: toSeriesTuples(dpd),
-            smooth: true,
-          },
-        ],
-        yAxes: [{ type: 'value', name: 'Period (s)' }],
-      })
+      return buildLineOption(
+        {
+          range: rangeSlider,
+          series: [
+            {
+              name: 'Dominant Period (s)',
+              type: 'line',
+              showSymbol: false,
+              itemStyle: { color },
+              data: toSeriesTuples(dpd),
+              smooth: true,
+            },
+          ],
+          yAxes: [{ type: 'value', name: 'Period (s)' }],
+        },
+        chartTheme
+      )
     },
-    [getBuoyColor, rangeSlider, waveSeries]
+    [chartTheme, getBuoyColor, rangeSlider, waveSeries]
   )
 
   const buildWindChartOption = useCallback(
@@ -517,23 +630,26 @@ function DashboardContent({
       const color = getBuoyColor(stationId)
       const wind = waveSeries[stationId]?.WSPD ?? []
       if (!wind.length) {
-        return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+        return buildEmptyChartOption(chartTheme)
       }
-      return buildLineOption({
-        range: rangeSlider,
-        series: [
-          {
-            name: 'Wind Speed (m/s)',
-            type: 'line',
-            showSymbol: false,
-            itemStyle: { color },
-            data: toSeriesTuples(wind),
-            smooth: true,
-          },
-        ],
-      })
+      return buildLineOption(
+        {
+          range: rangeSlider,
+          series: [
+            {
+              name: 'Wind Speed (m/s)',
+              type: 'line',
+              showSymbol: false,
+              itemStyle: { color },
+              data: toSeriesTuples(wind),
+              smooth: true,
+            },
+          ],
+        },
+        chartTheme
+      )
     },
-    [getBuoyColor, rangeSlider, waveSeries]
+    [chartTheme, getBuoyColor, rangeSlider, waveSeries]
   )
 
   const barPanelCards = useMemo(() => {
@@ -682,10 +798,10 @@ function DashboardContent({
 
   const estuaryChartOption = useMemo(() => {
     if (!estuaryStationId) {
-      return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+      return buildEmptyChartOption(chartTheme)
     }
     if (!estuaryObsFiltered.length && !estuaryPredQuery.data?.length) {
-      return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+      return buildEmptyChartOption(chartTheme)
     }
     const obsSeries = lttb(estuaryObsFiltered)
     const predSeries = lttb(estuaryPredQuery.data ?? [])
@@ -721,15 +837,25 @@ function DashboardContent({
       })
     }
 
-    return buildLineOption({
-      range: rangeSlider,
-      series,
-      yAxes: [
-        { type: 'value', name: 'Water Level (m)' },
-        { type: 'value', name: 'Residual (m)', position: 'right' },
-      ],
-    })
-  }, [estuaryStationId, estuaryObsFiltered, estuaryPredQuery.data, estuaryResidual, rangeSlider])
+    return buildLineOption(
+      {
+        range: rangeSlider,
+        series,
+        yAxes: [
+          { type: 'value', name: 'Water Level (m)' },
+          { type: 'value', name: 'Residual (m)', position: 'right' },
+        ],
+      },
+      chartTheme
+    )
+  }, [
+    chartTheme,
+    estuaryStationId,
+    estuaryObsFiltered,
+    estuaryPredQuery.data,
+    estuaryResidual,
+    rangeSlider,
+  ])
 
   const upriverChartOption = useMemo(() => {
     const series: LineSeriesOption[] = []
@@ -746,11 +872,11 @@ function DashboardContent({
     })
 
     if (!series.length) {
-      return { title: { text: EMPTY_SERIES_MSG, left: 'center', top: 'middle' } }
+      return buildEmptyChartOption(chartTheme)
     }
 
-    return buildLineOption({ range: rangeSlider, series })
-  }, [rangeSlider, upriverQueries])
+    return buildLineOption({ range: rangeSlider, series }, chartTheme)
+  }, [chartTheme, rangeSlider, upriverQueries])
 
   const hasBarPanelDefaults = useMemo(
     () => BAR_PANEL_DEFAULTS.every((id) => barPanels.includes(id)),
