@@ -1,5 +1,5 @@
 import type { PaletteMode } from '@mui/material'
-import { createTheme, type PaletteOptions, type ThemeOptions } from '@mui/material/styles'
+import { alpha, createTheme, type PaletteOptions, type ThemeOptions } from '@mui/material/styles'
 
 const brown = '#3D2500'
 const accentLight = '#E8C66D'
@@ -9,6 +9,9 @@ const toolbarLightBg = '#222D31'
 const toolbarLightHover = '#2B3A41'
 const midnight = '#050B10'
 const deepSlate = '#101820'
+const lightChipBg = alpha(accentLight, 0.5)
+const lightChipBorder = '#C2DCEB'
+const lightChipText = '#15262C'
 
 const sansStack = [
   'Inter',
@@ -71,6 +74,9 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
   const buttonHoverBg = isLight ? toolbarLightHover : accentDarkHover
   const buttonBorder = accentLight
   const buttonText = accentLight
+  const chipBg = isLight ? lightChipBg : buttonBg
+  const chipBorder = isLight ? lightChipBorder : buttonBorder
+  const chipText = isLight ? lightChipText : buttonText
 
   return {
     MuiCssBaseline: {
@@ -130,9 +136,9 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
     MuiChip: {
       styleOverrides: {
         root: {
-          backgroundColor: buttonBg,
-          color: buttonText,
-          border: `1px solid ${buttonBorder}`,
+          backgroundColor: chipBg,
+          color: chipText,
+          border: `1px solid ${chipBorder}`,
         },
       },
     },
