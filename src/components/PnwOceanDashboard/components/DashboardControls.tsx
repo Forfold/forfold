@@ -22,6 +22,7 @@ import { DATUM_OPTIONS } from '../constants'
 import { DATE_RANGE_WINDOW_DAYS, useDashboardControls } from '../ControlsContext'
 import { ESTUARY_STATION_OPTIONS, NDBC_STATION_OPTIONS, stripProviderSuffix } from '../stationInfo'
 import { formatDateTimeLocalInput } from '../utils'
+import { StationLabelWithTooltip } from './StationLabelWithTooltip'
 
 type DashboardControlsProps = {
   pickerMinDate: Date
@@ -109,7 +110,7 @@ function BarStationSelector({
   return (
     <FormControl component="fieldset" variant="standard">
       <FormLabel component="legend">
-        Bar Conditions buoys · National Data Buoy Center (NDBC)
+        Bar Conditions Buoys · National Data Buoy Center (NDBC)
       </FormLabel>
       <FormGroup>
         {NDBC_STATION_OPTIONS.map((station) => (
@@ -121,7 +122,16 @@ function BarStationSelector({
                 onChange={() => handleToggle(station.id)}
               />
             }
-            label={stripProviderSuffix(station.label)}
+            disableTypography
+            label={
+              <StationLabelWithTooltip
+                stationId={station.id}
+                label={stripProviderSuffix(station.label)}
+                variant="body1"
+                truncate={false}
+                placement="right"
+              />
+            }
           />
         ))}
       </FormGroup>
@@ -161,7 +171,16 @@ function EstuaryStationSelector({
               key={station.id}
               value={station.id}
               control={<Radio />}
-              label={stripProviderSuffix(station.label)}
+              disableTypography
+              label={
+                <StationLabelWithTooltip
+                  stationId={station.id}
+                  label={stripProviderSuffix(station.label)}
+                  variant="body1"
+                  truncate={false}
+                  placement="right"
+                />
+              }
             />
           ))}
         </RadioGroup>

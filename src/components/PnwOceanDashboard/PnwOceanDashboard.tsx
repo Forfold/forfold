@@ -34,7 +34,7 @@ import {
   parseDateTimeLocalInput,
   toSeriesTuples,
 } from './utils'
-import { describeStation, stationMeta } from './stationInfo'
+import { describeStation, stationMeta, stripProviderSuffix } from './stationInfo'
 import {
   DATE_RANGE_WINDOW_DAYS,
   PnwControlsProvider,
@@ -46,6 +46,7 @@ import { DashboardControlsDrawer } from './components/DashboardControlsDrawer'
 import { DashboardControlsPanel } from './components/DashboardControlsPanel'
 import { DashboardHeaderCard } from './components/DashboardHeaderCard'
 import { MapCard } from './components/MapCard'
+import { StationLabelWithTooltip } from './components/StationLabelWithTooltip'
 import { BUOY_COLOR_PALETTE } from './colors'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -440,12 +441,8 @@ function DashboardContent({
 
   const estuaryCardTitle = useMemo(() => {
     if (!estuaryStation) return 'Estuary'
-    const segments = estuaryStation.label.split('·').map((segment) => segment.trim())
-    const idPart = segments[0]
-    const namePart = segments.slice(1).join(' · ')
-    if (!idPart) return `Estuary · ${estuaryStation.label}`
-    if (!namePart) return `Estuary · ${idPart}`
-    return `Estuary · ${namePart} (${idPart})`
+    const label = `Estuary · ${stripProviderSuffix(estuaryStation.label)}`
+    return <StationLabelWithTooltip stationId={estuaryStation.id} label={label} variant="h5" />
   }, [estuaryStation])
 
   const ndbcQueries = useQueries({
@@ -670,6 +667,10 @@ function DashboardContent({
       if (!hasActiveBarCards(stationCards)) {
         return []
       }
+      const barTitleLabel = `Bar Conditions · ${stationLabel}`
+      const renderBarCardTitle = () => (
+        <StationLabelWithTooltip stationId={stationId} label={barTitleLabel} variant="h5" />
+      )
 
       const renderCloseButton = (variant: BarCardVariant) => {
         const tooltipLabel =
@@ -706,7 +707,7 @@ function DashboardContent({
           >
             <ChartCard
               header={{
-                title: `Bar Conditions · ${stationLabel}`,
+                title: renderBarCardTitle(),
                 subheader: 'Wave Height',
                 action: renderCloseButton('wave'),
               }}
@@ -733,7 +734,7 @@ function DashboardContent({
           >
             <ChartCard
               header={{
-                title: `Bar Conditions · ${stationLabel}`,
+                title: renderBarCardTitle(),
                 subheader: 'Dominant Period',
                 action: renderCloseButton('period'),
               }}
@@ -760,7 +761,7 @@ function DashboardContent({
           >
             <ChartCard
               header={{
-                title: `Bar Conditions · ${stationLabel}`,
+                title: renderBarCardTitle(),
                 subheader: 'Winds',
                 action: renderCloseButton('wind'),
               }}

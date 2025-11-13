@@ -1,17 +1,11 @@
 import type { PaletteMode } from '@mui/material'
-import { alpha, createTheme, type PaletteOptions, type ThemeOptions } from '@mui/material/styles'
+import { createTheme, type PaletteOptions, type ThemeOptions } from '@mui/material/styles'
 
 const brown = '#3D2500'
 const accentLight = '#E8C66D'
-const accentDarkBg = '#1F2F36'
-const accentDarkHover = '#2A3F48'
-const toolbarLightBg = '#222D31'
-const toolbarLightHover = '#2B3A41'
 const midnight = '#050B10'
 const deepSlate = '#101820'
-const lightChipBg = alpha(accentLight, 0.5)
 const lightChipBorder = '#C2DCEB'
-const lightChipText = '#15262C'
 
 const sansStack = [
   'Inter',
@@ -46,8 +40,8 @@ const buildPalette = (mode: PaletteMode): PaletteOptions => {
   if (mode === 'dark') {
     return {
       mode,
-      primary: { main: '#7BD0FF', contrastText: '#03141C' },
-      secondary: { main: '#9CD9BF', contrastText: '#05130F' },
+      primary: { main: '#E8A66C', contrastText: '#03141C' },
+      secondary: { main: '#4E87A0', contrastText: '#05130F' },
       info: { main: '#67B1F4' },
       warning: { main: '#F4A261', contrastText: '#2E1300' },
       background: { default: midnight, paper: deepSlate },
@@ -70,13 +64,8 @@ const buildPalette = (mode: PaletteMode): PaletteOptions => {
 
 const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
   const isLight = mode === 'light'
-  const buttonBg = isLight ? toolbarLightBg : accentDarkBg
-  const buttonHoverBg = isLight ? toolbarLightHover : accentDarkHover
   const buttonBorder = accentLight
-  const buttonText = accentLight
-  const chipBg = isLight ? lightChipBg : buttonBg
   const chipBorder = isLight ? lightChipBorder : buttonBorder
-  const chipText = isLight ? lightChipText : buttonText
 
   return {
     MuiCssBaseline: {
@@ -122,22 +111,16 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
     MuiButton: {
       styleOverrides: {
         root: {
-          backgroundColor: buttonBg,
-          color: buttonText,
-          border: `2px solid ${buttonBorder} !important`,
+          border: `2px solid ${brown} !important`,
           transition: 'background-color 150ms ease, border-color 150ms ease',
-          '&:hover': {
-            backgroundColor: buttonHoverBg,
-            borderColor: buttonBorder,
-          },
+          backgroundColor: accentLight,
+          color: brown,
         },
       },
     },
     MuiChip: {
       styleOverrides: {
         root: {
-          backgroundColor: chipBg,
-          color: chipText,
           border: `1px solid ${chipBorder}`,
         },
       },

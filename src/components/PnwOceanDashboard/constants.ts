@@ -27,44 +27,44 @@ export const DEFAULT_HISTORY_DAYS = 10
 export const MAX_HISTORY_DAYS = 30
 
 export const STATIONS: StationDefinition[] = [
-  { id: '46087', label: '46087 · Neah Bay (NDBC)', provider: 'NDBC', group: 'ocean' },
-  { id: '46041', label: '46041 · Cape Elizabeth (NDBC)', provider: 'NDBC', group: 'ocean' },
+  { id: '46087', label: 'Neah Bay', provider: 'NDBC', group: 'ocean' },
+  { id: '46041', label: 'Cape Elizabeth', provider: 'NDBC', group: 'ocean' },
   {
     id: '46029',
-    label: '46029 · Columbia River Bar (NDBC)',
+    label: 'Columbia River Bar',
     provider: 'NDBC',
     group: 'ocean',
     defaultSelected: true,
   },
   {
     id: '46243',
-    label: '46243 · Clatsop Spit (NDBC)',
+    label: 'Clatsop Spit',
     provider: 'NDBC',
     group: 'ocean',
     defaultSelected: true,
   },
   {
     id: '9444090',
-    label: '9444090 · Port Angeles (CO-OPS)',
+    label: 'Port Angeles',
     provider: 'COOPS_OBS',
     group: 'ocean',
   },
   {
     id: '9439040',
-    label: '9439040 · Astoria Tongue Point (CO-OPS)',
+    label: 'Astoria Tongue Point',
     provider: 'COOPS_OBS',
     group: 'estuary',
     defaultSelected: true,
   },
   {
     id: '9439221',
-    label: '9439221 · Portland (CO-OPS predictions)',
+    label: 'Portland (CO-OPS predictions)',
     provider: 'COOPS_PRED',
     group: 'upriver',
   },
   {
     id: '9440083',
-    label: '9440083 · Vancouver, WA (CO-OPS predictions)',
+    label: 'Vancouver, WA (CO-OPS predictions)',
     provider: 'COOPS_PRED',
     group: 'upriver',
   },

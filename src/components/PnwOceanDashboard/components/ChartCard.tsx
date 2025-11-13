@@ -49,14 +49,25 @@ type ChartCardProps = {
 } & Omit<CardProps, 'children'>
 
 export function ChartCard({ header, contentProps, children, sx, ...cardProps }: ChartCardProps) {
-  const { sx: headerSx, ...restHeaderProps } = header
+  const { sx: headerSx, title, disableTypography, ...restHeaderProps } = header
   const { sx: contentSx, ...restContentProps } = contentProps ?? {}
   const cardSx = mergeSx(CHART_CARD_SX, sx)
   const cardContentSx = mergeSx(CHART_CARD_CONTENT_SX, contentSx)
+  const shouldDisableTypography =
+    disableTypography ??
+    (title !== undefined &&
+      title !== null &&
+      typeof title !== 'string' &&
+      typeof title !== 'number')
 
   return (
     <Card variant="outlined" sx={cardSx} {...cardProps}>
-      <CardHeader {...restHeaderProps} sx={headerSx} />
+      <CardHeader
+        {...restHeaderProps}
+        title={title}
+        disableTypography={shouldDisableTypography}
+        sx={headerSx}
+      />
       <CardContent {...restContentProps} sx={cardContentSx}>
         {children}
       </CardContent>
