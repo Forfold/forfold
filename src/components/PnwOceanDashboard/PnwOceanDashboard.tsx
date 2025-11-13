@@ -9,7 +9,7 @@ import {
 } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
-import { Alert, Box, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material'
+import { Alert, Box, CircularProgress, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -135,6 +135,22 @@ function PanelEmptyState({ message }: { message: string }) {
       <Typography variant="body2" color="text.secondary">
         {message}
       </Typography>
+    </Box>
+  )
+}
+
+function ChartLoadingState({ height }: { height: number }) {
+  return (
+    <Box
+      sx={{
+        flexGrow: 1,
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <CircularProgress size={32} />
     </Box>
   )
 }
@@ -327,6 +343,14 @@ function DashboardContent({
       retry: false,
     })),
   })
+
+  const ndbcLoadingByStation = useMemo(() => {
+    const map: Record<string, boolean> = {}
+    ndbcStations.forEach((stationId, idx) => {
+      map[stationId] = Boolean(ndbcQueries[idx]?.isLoading)
+    })
+    return map
+  }, [ndbcQueries, ndbcStations])
 
   const estuaryDatum = useMemo<DatumCode | undefined>(() => {
     if (!estuaryStationId) return undefined
@@ -530,6 +554,7 @@ function DashboardContent({
       const stationLabel = describeStation(stationId)
       const panelBgColor = getBuoyPanelColor(stationId)
       const stationCards = barCardVisibility[stationId] ?? BAR_CARD_FLAGS_DEFAULT
+      const stationLoading = ndbcLoadingByStation[stationId] ?? false
       if (!hasActiveBarCards(stationCards)) {
         return []
       }
@@ -576,9 +601,13 @@ function DashboardContent({
               }}
               sx={baseCardSx}
             >
-              <Box sx={{ flexGrow: 1 }}>
-                <EChartCanvas option={buildWaveHeightChartOption(stationId)} height={240} />
-              </Box>
+              {stationLoading ? (
+                <ChartLoadingState height={240} />
+              ) : (
+                <Box sx={{ flexGrow: 1 }}>
+                  <EChartCanvas option={buildWaveHeightChartOption(stationId)} height={240} />
+                </Box>
+              )}
             </ChartCard>
           </Grid>
         )
@@ -599,9 +628,13 @@ function DashboardContent({
               }}
               sx={baseCardSx}
             >
-              <Box sx={{ flexGrow: 1 }}>
-                <EChartCanvas option={buildPeriodChartOption(stationId)} height={220} />
-              </Box>
+              {stationLoading ? (
+                <ChartLoadingState height={220} />
+              ) : (
+                <Box sx={{ flexGrow: 1 }}>
+                  <EChartCanvas option={buildPeriodChartOption(stationId)} height={220} />
+                </Box>
+              )}
             </ChartCard>
           </Grid>
         )
@@ -622,9 +655,13 @@ function DashboardContent({
               }}
               sx={baseCardSx}
             >
-              <Box sx={{ flexGrow: 1 }}>
-                <EChartCanvas option={buildWindChartOption(stationId)} height={220} />
-              </Box>
+              {stationLoading ? (
+                <ChartLoadingState height={220} />
+              ) : (
+                <Box sx={{ flexGrow: 1 }}>
+                  <EChartCanvas option={buildWindChartOption(stationId)} height={220} />
+                </Box>
+              )}
             </ChartCard>
           </Grid>
         )
@@ -639,6 +676,7 @@ function DashboardContent({
     buildPeriodChartOption,
     buildWindChartOption,
     getBuoyPanelColor,
+    ndbcLoadingByStation,
     handleCloseBarCard,
   ])
 
@@ -757,11 +795,7 @@ function DashboardContent({
   const estuaryLoading = Boolean(
     estuaryStationId && estuaryDatum && (estuaryObsQuery.isLoading || estuaryPredQuery.isLoading)
   )
-
-  const loading =
-    ndbcQueries.some((query) => query.isLoading) ||
-    estuaryLoading ||
-    upriverQueries.some((query) => query.isLoading)
+  const upriverLoading = upriverQueries.some((query) => query.isLoading)
 
   const estuaryError =
     estuaryStationId && estuaryDatum ? estuaryObsQuery.error || estuaryPredQuery.error : undefined
@@ -795,7 +829,6 @@ function DashboardContent({
                 onDateFieldChange={handleDateFieldChange}
                 panelCoverage={panelCoverage}
                 rangeLabel={rangeLabel}
-                loading={loading}
               />
             )}
 
@@ -824,9 +857,13 @@ function DashboardContent({
                   }}
                 >
                   {estuaryStationId && estuaryDatum ? (
-                    <Box sx={{ flexGrow: 1 }}>
-                      <EChartCanvas option={estuaryChartOption} height={320} />
-                    </Box>
+                    estuaryLoading ? (
+                      <ChartLoadingState height={320} />
+                    ) : (
+                      <Box sx={{ flexGrow: 1 }}>
+                        <EChartCanvas option={estuaryChartOption} height={320} />
+                      </Box>
+                    )
                   ) : (
                     <PanelEmptyState message="Choose a CO-OPS estuary gauge in Controls to compare observed vs. predicted water levels." />
                   )}
@@ -840,9 +877,13 @@ function DashboardContent({
                     subheader: 'Stations fixed to Portland (9439221) · Vancouver (9440083)',
                   }}
                 >
-                  <Box sx={{ flexGrow: 1 }}>
-                    <EChartCanvas option={upriverChartOption} height={320} />
-                  </Box>
+                  {upriverLoading ? (
+                    <ChartLoadingState height={320} />
+                  ) : (
+                    <Box sx={{ flexGrow: 1 }}>
+                      <EChartCanvas option={upriverChartOption} height={320} />
+                    </Box>
+                  )}
                   <Typography variant="caption" color="text.secondary">
                     Times shown in local (LST/LDT) per CO-OPS response.
                   </Typography>

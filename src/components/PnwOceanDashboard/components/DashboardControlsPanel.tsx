@@ -1,5 +1,5 @@
 import { type ChangeEvent } from 'react'
-import { Card, CardContent, CardHeader, CircularProgress, Stack, Typography } from '@mui/material'
+import { Card, CardContent, CardHeader } from '@mui/material'
 import { DashboardControls, type PanelCoverageEntry } from './DashboardControls'
 
 type DashboardControlsPanelProps = {
@@ -8,7 +8,6 @@ type DashboardControlsPanelProps = {
   onDateFieldChange: (key: 'start' | 'end') => (event: ChangeEvent<HTMLInputElement>) => void
   panelCoverage: PanelCoverageEntry[]
   rangeLabel: string
-  loading: boolean
 }
 
 export function DashboardControlsPanel({
@@ -17,23 +16,12 @@ export function DashboardControlsPanel({
   onDateFieldChange,
   panelCoverage,
   rangeLabel,
-  loading,
 }: DashboardControlsPanelProps) {
   return (
     <Card variant="outlined">
       <CardHeader
         title="Controls"
         subheader={rangeLabel}
-        action={
-          loading ? (
-            <Stack direction="row" spacing={1} alignItems="center">
-              <CircularProgress size={18} />
-              <Typography variant="body2">
-                Refreshing National Oceanic and Atmospheric Administration (NOAA) feeds…
-              </Typography>
-            </Stack>
-          ) : undefined
-        }
         sx={{
           alignItems: { xs: 'flex-start', md: 'center' },
           flexDirection: { xs: 'column', md: 'row' },
