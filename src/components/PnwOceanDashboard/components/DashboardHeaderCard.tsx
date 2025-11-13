@@ -4,7 +4,7 @@ import { ChartCard } from './ChartCard'
 
 export function DashboardHeaderCard() {
   return (
-    <ChartCard header={{ title: 'Pacific Northwest ocean snapshot' }}>
+    <ChartCard header={{ title: 'Pacific Northwest Ocean Snapshot' }}>
       <Stack spacing={1.25} sx={{ mt: -2 }}>
         <Typography variant="body2" color="text.secondary">
           › <b>Wave and wind panels</b> aggregate near real-time NDBC (National Data Buoy Center)
