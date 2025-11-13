@@ -6,7 +6,7 @@ module.exports = {
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.cjs'],
   testMatch: ['<rootDir>/src/**/*.test.(ts|tsx)'],
   transform: {
     '^.+\\.(ts|tsx)$': [

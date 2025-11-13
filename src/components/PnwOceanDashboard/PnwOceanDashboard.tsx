@@ -9,7 +9,7 @@ import {
 } from 'react'
 import * as echarts from 'echarts'
 import type { EChartsOption, LineSeriesOption, YAXisComponentOption } from 'echarts'
-import { Alert, Box, Chip, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material'
+import { Alert, Box, Grid, IconButton, Stack, Tooltip, Typography } from '@mui/material'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import { useTheme } from '@mui/material/styles'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -30,7 +30,7 @@ import {
   parseDateTimeLocalInput,
   toSeriesTuples,
 } from './utils'
-import { describeStation, formatStationChipLabel, stationMeta } from './stationInfo'
+import { describeStation, stationMeta } from './stationInfo'
 import {
   DATE_RANGE_WINDOW_DAYS,
   PnwControlsProvider,
@@ -127,40 +127,6 @@ function EChartCanvas({ option, height }: EChartCanvasProps) {
   }, [option])
 
   return <Box ref={containerRef} sx={{ width: '100%', height }} />
-}
-
-function StationChipRow({
-  stationIds,
-  palette = [],
-  emptyLabel,
-}: {
-  stationIds: string[]
-  palette?: string[]
-  emptyLabel?: string
-}) {
-  if (!stationIds.length) {
-    return emptyLabel ? (
-      <Typography variant="caption" color="text.secondary">
-        {emptyLabel}
-      </Typography>
-    ) : null
-  }
-
-  return (
-    <Stack direction="row" spacing={0.5} flexWrap="wrap" justifyContent="flex-end">
-      {stationIds.map((stationId, index) => {
-        const color = palette[index % palette.length]
-        return (
-          <Chip
-            key={stationId}
-            label={formatStationChipLabel(stationId)}
-            size="small"
-            sx={color ? { bgcolor: color, color: '#fff', fontWeight: 500 } : undefined}
-          />
-        )
-      })}
-    </Stack>
-  )
 }
 
 function PanelEmptyState({ message }: { message: string }) {
@@ -855,12 +821,6 @@ function DashboardContent({
                     subheader: estuaryDatum
                       ? `Datum ${estuaryDatum}`
                       : 'Choose a CO-OPS gauge in Controls',
-                    action: (
-                      <StationChipRow
-                        stationIds={estuaryStationId ? [estuaryStationId] : []}
-                        emptyLabel="Pick a CO-OPS gauge"
-                      />
-                    ),
                   }}
                 >
                   {estuaryStationId && estuaryDatum ? (
@@ -878,7 +838,6 @@ function DashboardContent({
                   header={{
                     title: 'Upriver Predictions',
                     subheader: 'Stations fixed to Portland (9439221) · Vancouver (9440083)',
-                    action: <StationChipRow stationIds={UPRIVER_STATIONS} />,
                   }}
                 >
                   <Box sx={{ flexGrow: 1 }}>

@@ -13,14 +13,23 @@ if (typeof window !== 'undefined') {
   }
 
   if (!window.matchMedia) {
-    window.matchMedia = () =>
-      ({
-        matches: false,
-        addListener: () => {},
-        removeListener: () => {},
-        addEventListener: () => {},
-        removeEventListener: () => {},
-        dispatchEvent: () => false,
-      }) as MediaQueryList
+    window.matchMedia = (query: string): MediaQueryList => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: () => undefined,
+      removeListener: () => undefined,
+      addEventListener: (
+        _type: string,
+        _listener: EventListenerOrEventListenerObject | null,
+        _options?: boolean | AddEventListenerOptions
+      ) => undefined,
+      removeEventListener: (
+        _type: string,
+        _listener: EventListenerOrEventListenerObject | null,
+        _options?: boolean | EventListenerOptions
+      ) => undefined,
+      dispatchEvent: (_event: Event) => false,
+    })
   }
 }
