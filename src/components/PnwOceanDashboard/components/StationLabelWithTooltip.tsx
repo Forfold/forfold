@@ -57,6 +57,8 @@ export function StationLabelWithTooltip({
         tooltip: {
           sx: (theme) => ({
             backgroundColor: theme.palette.primary.main,
+            color: theme.palette.mode === 'light' ? 'white' : 'black',
+            fontWeight: 'bolder',
           }),
         },
       }}

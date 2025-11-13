@@ -1,6 +1,9 @@
 import type { PaletteMode } from '@mui/material'
 import { createTheme, type PaletteOptions, type ThemeOptions } from '@mui/material/styles'
 
+const primaryMain = '#222D31'
+const secondaryMain = '#4E87A0'
+
 const brown = '#3D2500'
 const accentLight = '#E8C66D'
 const midnight = '#050B10'
@@ -52,13 +55,13 @@ const buildPalette = (mode: PaletteMode): PaletteOptions => {
 
   return {
     mode,
-    primary: { main: '#222D31', contrastText: '#FEFDF7' },
-    secondary: { main: '#889F93', contrastText: '#FEFDF7' },
+    primary: { main: primaryMain, contrastText: '#FEFDF7' },
+    secondary: { main: secondaryMain, contrastText: '#FEFDF7' },
     info: { main: brown },
     warning: { main: '#6F3B3C', contrastText: '#FEFDF7' },
     background: { default: '#FDFBF7', paper: '#E7EDED' },
     text: { primary: '#1F2C31', secondary: 'rgba(31,44,49,0.65)' },
-    divider: '#D4DAD8',
+    divider: primaryMain,
   }
 }
 
@@ -82,7 +85,7 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
       styleOverrides: {
         colorPrimary: {
           backgroundImage: 'none',
-          backgroundColor: isLight ? '#222D31' : deepSlate,
+          backgroundColor: isLight ? primaryMain : deepSlate,
           color: '#F5FAFF',
           borderBottom: `1px solid ${isLight ? '#1B2428' : 'rgba(255,255,255,0.12)'}`,
         },
@@ -93,7 +96,7 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
         root: {
           color: isLight ? '#F8F9FA' : '#C6D2DD',
           '&.Mui-selected': {
-            color: isLight ? accentLight : '#F5FAFF',
+            color: isLight ? '#F8F9FA' : '#C6D2DD',
           },
         },
       },
@@ -111,10 +114,10 @@ const buildComponents = (mode: PaletteMode): ThemeOptions['components'] => {
     MuiButton: {
       styleOverrides: {
         root: {
-          border: `2px solid ${brown} !important`,
+          border: `2px solid ${isLight ? brown : accentLight} !important`,
           transition: 'background-color 150ms ease, border-color 150ms ease',
-          backgroundColor: accentLight,
-          color: brown,
+          // backgroundColor: isLight ? accentLight : brown,
+          // color: isLight ? brown : accentLight,
         },
       },
     },
