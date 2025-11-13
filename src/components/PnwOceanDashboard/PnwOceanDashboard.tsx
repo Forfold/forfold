@@ -45,7 +45,6 @@ import {
 import { ChartCard } from './components/ChartCard'
 import { DashboardControlsDrawer } from './components/DashboardControlsDrawer'
 import { DashboardControlsPanel } from './components/DashboardControlsPanel'
-import { DashboardHeaderCard } from './components/DashboardHeaderCard'
 import { MapCard } from './components/MapCard'
 import { StationLabelWithTooltip } from './components/StationLabelWithTooltip'
 import { BUOY_COLOR_PALETTE } from './colors'
@@ -902,35 +901,29 @@ function DashboardContent({
       )}
 
       <Grid container spacing={{ xs: 1, md: 2 }}>
-        <Grid size={{ sm: 12, md: 9 }}>
-          <Alert severity="info">
-            <AlertTitle>Pacific Northwest Ocean Snapshot</AlertTitle>
-            <Typography variant="body2" color="text.secondary">
-              › <b>Wave and wind panels</b> aggregate near real-time NDBC (National Data Buoy
-              Center) buoy feeds.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              › <b>The estuary chart</b> compares CO-OPS (Center for Operational Oceanographic
-              Products and Services) observations with predictions for the estuary station you pick.
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              › <b>The upriver view</b> shows forecasted water levels for Portland, Oregon and
-              Vancouver, Washington.
-            </Typography>
-          </Alert>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 9 }}>
+        <Grid size={{ xs: 12, lg: 9 }}>
           <Stack spacing={2}>
+            <Alert severity="info">
+              <AlertTitle>Pacific Northwest Ocean Snapshot</AlertTitle>
+              <Typography variant="body2" color="text.secondary">
+                › <b>Wave and wind panels</b> aggregate near real-time NDBC (National Data Buoy
+                Center) buoy feeds.
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                › <b>The estuary chart</b> compares CO-OPS (Center for Operational Oceanographic
+                Products and Services) observations with predictions for the estuary station you
+                pick.
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                › <b>The upriver view</b> shows forecasted water levels for Portland, Oregon and
+                Vancouver, Washington.
+              </Typography>
+            </Alert>
             {firstErrorMessage && <Alert severity="error">{firstErrorMessage}</Alert>}
 
             <Grid container spacing={2} alignItems="stretch">
               <Grid size={{ md: 12, lg: 6 }} sx={{ display: 'flex', width: '100%' }}>
                 <MapCard />
-              </Grid>
-
-              <Grid size={{ md: 12, lg: 6 }} sx={{ display: 'flex', width: '100%' }}>
-                <DashboardHeaderCard />
               </Grid>
 
               {barPanelCards}

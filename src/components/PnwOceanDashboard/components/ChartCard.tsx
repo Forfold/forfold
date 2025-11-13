@@ -66,7 +66,10 @@ export function ChartCard({ header, contentProps, children, sx, ...cardProps }: 
         {...restHeaderProps}
         title={title}
         disableTypography={shouldDisableTypography}
-        sx={headerSx}
+        sx={{
+          pb: 1,
+          ...headerSx,
+        }}
       />
       <CardContent {...restContentProps} sx={cardContentSx}>
         {children}

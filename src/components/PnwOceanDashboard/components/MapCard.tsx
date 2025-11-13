@@ -1,35 +1,26 @@
 import { Box, Typography } from '@mui/material'
-import type { ReactNode } from 'react'
 import { ChartCard } from './ChartCard'
 
-type MapCardProps = {
-  title?: ReactNode
-  subheader?: ReactNode
-  children?: ReactNode
-}
-
-export function MapCard({ title = 'Map', subheader = 'Coming soon', children }: MapCardProps) {
+export function MapCard() {
   return (
-    <ChartCard header={{ title, subheader }}>
-      {children ?? (
-        <Box
-          sx={{
-            flexGrow: 1,
-            minHeight: 180,
-            borderRadius: 1,
-            border: '1px dashed',
-            borderColor: 'divider',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            bgcolor: 'action.hover',
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            NOAA basemap placeholder
-          </Typography>
-        </Box>
-      )}
+    <ChartCard header={{ title: 'Coastal Map', subheader: 'Buoy locations in the PNW' }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          minHeight: 180,
+          borderRadius: 1,
+          border: '1px dashed',
+          borderColor: 'divider',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          bgcolor: 'action.hover',
+        }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Coming soon!
+        </Typography>
+      </Box>
     </ChartCard>
   )
 }
