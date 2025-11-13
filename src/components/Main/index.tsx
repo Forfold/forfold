@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useState } from 'react'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Tabs, Tab, Toolbar, AppBar, Typography, IconButton } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
@@ -15,13 +15,11 @@ export function Main() {
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setValue(newValue)
-  }
 
-  useEffect(() => {
-    if (value !== 2 && controlsDrawerOpen) {
+    if (newValue !== 2 && controlsDrawerOpen) {
       setControlsDrawerOpen(false)
     }
-  }, [controlsDrawerOpen, value])
+  }
 
   return (
     <ThemeProvider theme={theme}>

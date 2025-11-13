@@ -10,6 +10,12 @@ const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
 })
 
+const tsFiles = ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts']
+const typeCheckedTsConfigs = tseslint.configs.recommendedTypeChecked.map((config) => ({
+  ...config,
+  files: config.files ?? tsFiles,
+}))
+
 export default [
   //
   // Base JS rules
@@ -19,7 +25,7 @@ export default [
   //
   // TypeScript rules (type-aware)
   //
-  ...tseslint.configs.recommendedTypeChecked,
+  ...typeCheckedTsConfigs,
 
   //
   // React + Hooks (converted from legacy configs)

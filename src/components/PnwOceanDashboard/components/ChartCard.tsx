@@ -17,12 +17,15 @@ const CHART_CARD_SX: SystemStyleObject<Theme> = {
   flexDirection: 'column',
   height: '100%',
   width: '100%',
+  maxWidth: '100%',
+  minWidth: 0,
 }
 
 const CHART_CARD_CONTENT_SX: SystemStyleObject<Theme> = {
   flexGrow: 1,
   display: 'flex',
   flexDirection: 'column',
+  minWidth: 0,
 }
 
 const isSxArray = (value: SxProps<Theme>): value is readonly SxItem[] => Array.isArray(value)

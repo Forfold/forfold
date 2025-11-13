@@ -16,6 +16,6 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src", "src/ruffle-embed.d.ts"],
+  "include": ["src", "src/ruffle-embed.d.ts", "jest.setup.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
