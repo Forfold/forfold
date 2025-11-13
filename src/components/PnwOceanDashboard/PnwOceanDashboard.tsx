@@ -23,12 +23,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { alpha, useTheme } from '@mui/material/styles'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useQueries, useQuery } from '@tanstack/react-query'
-import {
-  BAR_PANEL_DEFAULTS,
-  ESTUARY_DATUM_CAPABLE,
-  UPRIVER_STATIONS,
-  CRD_SUPPORTED_STATIONS,
-} from './constants'
+import { ESTUARY_DATUM_CAPABLE, UPRIVER_STATIONS, CRD_SUPPORTED_STATIONS } from './constants'
 import type { DatumCode, NdbcRow, PnwOceanDashboardProps, TimePoint } from './types'
 import { fetchCoopsObs, fetchCoopsPred, fetchNdbc, NdbcFetchError } from './data'
 import {
@@ -50,21 +45,11 @@ import { ChartCard } from './components/ChartCard'
 import { DashboardControlsDrawer } from './components/DashboardControlsDrawer'
 import { DashboardControlsPanel } from './components/DashboardControlsPanel'
 import { DashboardHeaderCard } from './components/DashboardHeaderCard'
-import { type PanelCoverageEntry, type PanelCoverageStatus } from './components/DashboardControls'
 import { MapCard } from './components/MapCard'
+import { BUOY_COLOR_PALETTE } from './colors'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-const BUOY_COLOR_PALETTE = ['#0E7C7B', '#F4A261', '#1D3557', '#FFB703']
-const BUOY_PANEL_COLOR_SETS: Record<'light' | 'dark', string[]> = {
-  light: ['#E0F2F1', '#FFF3E0', '#E3F2FD', '#FFF9C4'],
-  dark: [
-    'rgba(11, 70, 88, 0.4)',
-    'rgba(129, 82, 17, 0.4)',
-    'rgba(21, 63, 112, 0.4)',
-    'rgba(154, 126, 12, 0.4)',
-  ],
-}
 const BAR_CARD_VARIANTS = ['wave', 'period', 'wind'] as const
 type BarCardVariant = (typeof BAR_CARD_VARIANTS)[number]
 type BarCardFlags = Record<BarCardVariant, boolean>
@@ -81,6 +66,29 @@ type ChartThemeTokens = {
   dataZoomHandleColor: string
   dataZoomTrackColor: string
 }
+
+const stationPaletteIndex = (stationId: string, paletteLength: number) => {
+  if (paletteLength <= 0) {
+    return 0
+  }
+  let hash = 0
+  for (let i = 0; i < stationId.length; i += 1) {
+    hash = (hash * 31 + stationId.charCodeAt(i)) % 2147483647
+  }
+  return hash % paletteLength
+}
+
+const createLineColorStyles = (
+  color: string
+): Pick<LineSeriesOption, 'color' | 'lineStyle' | 'itemStyle' | 'emphasis'> => ({
+  color,
+  lineStyle: { width: 2, color },
+  itemStyle: { color },
+  emphasis: {
+    focus: 'series',
+    lineStyle: { width: 3, color },
+  },
+})
 
 const BAR_CARD_FLAGS_DEFAULT: BarCardFlags = {
   wave: true,
@@ -550,24 +558,10 @@ function DashboardContent({
     })
     return result
   }, [ndbcStations, ndbcQueries, showSuspect])
-  const getBuoyColor = useCallback(
-    (stationId: string) => {
-      const index = barPanels.indexOf(stationId)
-      const paletteIndex = index >= 0 ? index % BUOY_COLOR_PALETTE.length : 0
-      return BUOY_COLOR_PALETTE[paletteIndex]
-    },
-    [barPanels]
-  )
-
-  const getBuoyPanelColor = useCallback(
-    (stationId: string) => {
-      const index = barPanels.indexOf(stationId)
-      const palette = BUOY_PANEL_COLOR_SETS[theme.palette.mode] ?? BUOY_PANEL_COLOR_SETS.light
-      const paletteIndex = index >= 0 ? index % palette.length : 0
-      return palette[paletteIndex]
-    },
-    [barPanels, theme.palette.mode]
-  )
+  const getBuoyColor = useCallback((stationId: string) => {
+    const paletteIndex = stationPaletteIndex(stationId, BUOY_COLOR_PALETTE.length)
+    return BUOY_COLOR_PALETTE[paletteIndex]
+  }, [])
 
   const buildWaveHeightChartOption = useCallback(
     (stationId: string) => {
@@ -576,6 +570,7 @@ function DashboardContent({
       if (!wvht.length) {
         return buildEmptyChartOption(chartTheme)
       }
+      const colorStyles = createLineColorStyles(color)
       return buildLineOption(
         {
           range: rangeSlider,
@@ -584,7 +579,7 @@ function DashboardContent({
               name: 'Wave Height (m)',
               type: 'line',
               showSymbol: false,
-              itemStyle: { color },
+              ...colorStyles,
               data: toSeriesTuples(wvht),
               smooth: true,
             },
@@ -604,6 +599,7 @@ function DashboardContent({
       if (!dpd.length) {
         return buildEmptyChartOption(chartTheme)
       }
+      const colorStyles = createLineColorStyles(color)
       return buildLineOption(
         {
           range: rangeSlider,
@@ -612,7 +608,7 @@ function DashboardContent({
               name: 'Dominant Period (s)',
               type: 'line',
               showSymbol: false,
-              itemStyle: { color },
+              ...colorStyles,
               data: toSeriesTuples(dpd),
               smooth: true,
             },
@@ -632,6 +628,7 @@ function DashboardContent({
       if (!wind.length) {
         return buildEmptyChartOption(chartTheme)
       }
+      const colorStyles = createLineColorStyles(color)
       return buildLineOption(
         {
           range: rangeSlider,
@@ -640,7 +637,7 @@ function DashboardContent({
               name: 'Wind Speed (m/s)',
               type: 'line',
               showSymbol: false,
-              itemStyle: { color },
+              ...colorStyles,
               data: toSeriesTuples(wind),
               smooth: true,
             },
@@ -668,7 +665,6 @@ function DashboardContent({
 
     return barPanels.flatMap((stationId) => {
       const stationLabel = describeStation(stationId)
-      const panelBgColor = getBuoyPanelColor(stationId)
       const stationCards = barCardVisibility[stationId] ?? BAR_CARD_FLAGS_DEFAULT
       const stationLoading = ndbcLoadingByStation[stationId] ?? false
       if (!hasActiveBarCards(stationCards)) {
@@ -696,7 +692,6 @@ function DashboardContent({
       }
 
       const baseCardSx = {
-        bgcolor: panelBgColor,
         transition: 'background-color 200ms ease',
       }
 
@@ -791,7 +786,6 @@ function DashboardContent({
     buildWaveHeightChartOption,
     buildPeriodChartOption,
     buildWindChartOption,
-    getBuoyPanelColor,
     ndbcLoadingByStation,
     handleCloseBarCard,
   ])
@@ -878,46 +872,6 @@ function DashboardContent({
     return buildLineOption({ range: rangeSlider, series }, chartTheme)
   }, [chartTheme, rangeSlider, upriverQueries])
 
-  const hasBarPanelDefaults = useMemo(
-    () => BAR_PANEL_DEFAULTS.every((id) => barPanels.includes(id)),
-    [barPanels]
-  )
-
-  const panelCoverage = useMemo<PanelCoverageEntry[]>(() => {
-    const entries: PanelCoverageEntry[] = []
-    const barStatus: PanelCoverageStatus = barPanels.length
-      ? hasBarPanelDefaults
-        ? 'ready'
-        : 'caution'
-      : 'blocked'
-    const barMessage = !barPanels.length
-      ? 'Select a buoy to create a Bar Conditions panel.'
-      : hasBarPanelDefaults
-        ? 'Panels cover the full Columbia River Bar.'
-        : 'Add 46029 + 46243 for complete bar coverage.'
-    entries.push({ id: 'bar', label: 'Bar Conditions', status: barStatus, message: barMessage })
-
-    const estuaryStatus: PanelCoverageStatus = estuaryStationId ? 'ready' : 'blocked'
-    const estuaryMessage = estuaryStationId
-      ? `Showing ${describeStation(estuaryStationId)}.`
-      : 'Pick a CO-OPS gauge to power the Estuary chart.'
-    entries.push({
-      id: 'estuary',
-      label: 'Estuary',
-      status: estuaryStatus,
-      message: estuaryMessage,
-    })
-
-    entries.push({
-      id: 'upriver',
-      label: 'Upriver',
-      status: 'ready',
-      message: 'Stations fixed to Portland (9439221) & Vancouver (9440083).',
-    })
-
-    return entries
-  }, [barPanels.length, estuaryStationId, hasBarPanelDefaults])
-
   const estuaryLoading = Boolean(
     estuaryStationId && estuaryDatum && (estuaryObsQuery.isLoading || estuaryPredQuery.isLoading)
   )
@@ -942,7 +896,6 @@ function DashboardContent({
           pickerMinDate={pickerMinDate}
           pickerMaxDate={pickerMaxDate}
           onDateFieldChange={handleDateFieldChange}
-          panelCoverage={panelCoverage}
         />
       )}
       <Grid container spacing={{ xs: 1, md: 2 }}>
@@ -953,7 +906,6 @@ function DashboardContent({
                 pickerMinDate={pickerMinDate}
                 pickerMaxDate={pickerMaxDate}
                 onDateFieldChange={handleDateFieldChange}
-                panelCoverage={panelCoverage}
                 rangeLabel={rangeLabel}
               />
             )}

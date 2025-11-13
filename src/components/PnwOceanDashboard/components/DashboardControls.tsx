@@ -2,7 +2,6 @@ import { type ChangeEvent } from 'react'
 import {
   Box,
   Checkbox,
-  Chip,
   FormControl,
   FormControlLabel,
   FormGroup,
@@ -18,27 +17,16 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import type { DatumCode } from '../types'
 import { DATUM_OPTIONS } from '../constants'
 import { DATE_RANGE_WINDOW_DAYS, useDashboardControls } from '../ControlsContext'
 import { ESTUARY_STATION_OPTIONS, NDBC_STATION_OPTIONS, stripProviderSuffix } from '../stationInfo'
 import { formatDateTimeLocalInput } from '../utils'
 
-export type PanelCoverageStatus = 'ready' | 'caution' | 'blocked'
-
-export type PanelCoverageEntry = {
-  id: 'bar' | 'estuary' | 'upriver'
-  label: string
-  status: PanelCoverageStatus
-  message: string
-}
-
 type DashboardControlsProps = {
   pickerMinDate: Date
   pickerMaxDate: Date
   onDateFieldChange: (key: 'start' | 'end') => (event: ChangeEvent<HTMLInputElement>) => void
-  panelCoverage: PanelCoverageEntry[]
 }
 
 const GRAPH_UNIT_TOOLTIPS: Record<DatumCode, string> = {
@@ -51,7 +39,6 @@ export function DashboardControls({
   pickerMinDate,
   pickerMaxDate,
   onDateFieldChange,
-  panelCoverage,
 }: DashboardControlsProps) {
   const {
     range,
@@ -99,7 +86,6 @@ export function DashboardControls({
 
       <BarStationSelector value={barPanels} onChange={handleBarPanelSelectionChange} />
       <EstuaryStationSelector value={estuaryStationId} onChange={setEstuaryStationId} />
-      <PanelCoverageLegend entries={panelCoverage} />
       <DatumToggle datum={datum} onChange={setDatum} />
       <QcToggle checked={showSuspect} onChange={setShowSuspect} />
     </Stack>
@@ -190,34 +176,6 @@ function EstuaryStationSelector({
           : 'Add a CO-OPS gauge in constants.ts to enable this panel.'}
       </FormHelperText>
     </FormControl>
-  )
-}
-
-function PanelCoverageLegend({ entries }: { entries: PanelCoverageEntry[] }) {
-  if (!entries.length) return null
-
-  return (
-    <Box>
-      <FormLabel sx={{ display: 'block', mb: 1 }}>Panel coverage</FormLabel>
-      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
-        {entries.map((entry) => (
-          <Chip
-            key={entry.id}
-            size="small"
-            color={
-              entry.status === 'ready'
-                ? 'success'
-                : entry.status === 'caution'
-                  ? 'warning'
-                  : 'default'
-            }
-            icon={<CheckCircleOutlineRoundedIcon fontSize="small" />}
-            label={`${entry.label}: ${entry.message}`}
-            sx={{ fontWeight: 500 }}
-          />
-        ))}
-      </Stack>
-    </Box>
   )
 }
 

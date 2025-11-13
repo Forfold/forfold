@@ -1,12 +1,11 @@
 import { type ChangeEvent } from 'react'
 import { Card, CardContent, CardHeader } from '@mui/material'
-import { DashboardControls, type PanelCoverageEntry } from './DashboardControls'
+import { DashboardControls } from './DashboardControls'
 
 type DashboardControlsPanelProps = {
   pickerMinDate: Date
   pickerMaxDate: Date
   onDateFieldChange: (key: 'start' | 'end') => (event: ChangeEvent<HTMLInputElement>) => void
-  panelCoverage: PanelCoverageEntry[]
   rangeLabel: string
 }
 
@@ -14,7 +13,6 @@ export function DashboardControlsPanel({
   pickerMinDate,
   pickerMaxDate,
   onDateFieldChange,
-  panelCoverage,
   rangeLabel,
 }: DashboardControlsPanelProps) {
   return (
@@ -37,7 +35,6 @@ export function DashboardControlsPanel({
           pickerMinDate={pickerMinDate}
           pickerMaxDate={pickerMaxDate}
           onDateFieldChange={onDateFieldChange}
-          panelCoverage={panelCoverage}
         />
       </CardContent>
     </Card>

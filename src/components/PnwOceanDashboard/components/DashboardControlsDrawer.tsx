@@ -1,7 +1,7 @@
 import { type ChangeEvent } from 'react'
 import { Box, Drawer, IconButton, Stack, Typography } from '@mui/material'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
-import { DashboardControls, type PanelCoverageEntry } from './DashboardControls'
+import { DashboardControls } from './DashboardControls'
 
 type DashboardControlsDrawerProps = {
   open: boolean
@@ -9,7 +9,6 @@ type DashboardControlsDrawerProps = {
   pickerMinDate: Date
   pickerMaxDate: Date
   onDateFieldChange: (key: 'start' | 'end') => (event: ChangeEvent<HTMLInputElement>) => void
-  panelCoverage: PanelCoverageEntry[]
 }
 
 export function DashboardControlsDrawer({
@@ -18,7 +17,6 @@ export function DashboardControlsDrawer({
   pickerMinDate,
   pickerMaxDate,
   onDateFieldChange,
-  panelCoverage,
 }: DashboardControlsDrawerProps) {
   return (
     <Drawer
@@ -50,7 +48,6 @@ export function DashboardControlsDrawer({
             pickerMinDate={pickerMinDate}
             pickerMaxDate={pickerMaxDate}
             onDateFieldChange={onDateFieldChange}
-            panelCoverage={panelCoverage}
           />
         </Box>
       </Box>
