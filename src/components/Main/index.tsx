@@ -190,7 +190,7 @@ export function Main() {
             overflow: 'hidden', // prevent this box from causing page scroll
             width: '100%',
             boxSizing: 'border-box',
-            p: '2%',
+            p: 4,
           }}
         >
           <Suspense fallback={<div>Loading...</div>}>
