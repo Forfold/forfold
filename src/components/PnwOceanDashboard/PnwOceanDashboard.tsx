@@ -407,7 +407,7 @@ function DashboardContent({
   const pickerMaxDate = new Date()
   const pickerMinDate = new Date(pickerMaxDate.getTime() - DATE_RANGE_WINDOW_DAYS * DAY_MS)
   const theme = useTheme()
-  const showInlineControls = useMediaQuery(theme.breakpoints.up('md'))
+  const showInlineControls = useMediaQuery(theme.breakpoints.up('lg'))
   const drawerOpen = Boolean(!showInlineControls && controlsDrawerOpen)
   const chartTheme = useMemo<ChartThemeTokens>(() => {
     const isDark = theme.palette.mode === 'dark'
@@ -649,7 +649,7 @@ function DashboardContent({
   const barPanelCards = useMemo(() => {
     if (!barPanels.length) {
       return [
-        <Grid key="bar-empty" size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+        <Grid key="bar-empty" size={{ md: 12, lg: 6 }} sx={{ display: 'flex', width: '100%' }}>
           <ChartCard
             header={{ title: 'Bar Conditions', subheader: 'Wave + wind' }}
             contentProps={{ sx: { justifyContent: 'center' } }}
@@ -702,7 +702,7 @@ function DashboardContent({
         cards.push(
           <Grid
             key={`${stationId}-wave`}
-            size={{ xs: 12, md: 6 }}
+            size={{ md: 12, lg: 6 }}
             sx={{ display: 'flex', width: '100%' }}
           >
             <ChartCard
@@ -729,7 +729,7 @@ function DashboardContent({
         cards.push(
           <Grid
             key={`${stationId}-period`}
-            size={{ xs: 12, md: 6 }}
+            size={{ md: 12, lg: 6 }}
             sx={{ display: 'flex', width: '100%' }}
           >
             <ChartCard
@@ -756,7 +756,7 @@ function DashboardContent({
         cards.push(
           <Grid
             key={`${stationId}-wind`}
-            size={{ xs: 12, md: 6 }}
+            size={{ md: 12, lg: 6 }}
             sx={{ display: 'flex', width: '100%' }}
           >
             <ChartCard
@@ -920,13 +920,13 @@ function DashboardContent({
             {firstErrorMessage && <Alert severity="error">{firstErrorMessage}</Alert>}
 
             <Grid container spacing={{ xs: 1, md: 2 }} alignItems="stretch">
-              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+              <Grid size={{ md: 12, lg: 6 }} sx={{ display: 'flex', width: '100%' }}>
                 <DashboardHeaderCard />
               </Grid>
 
               {barPanelCards}
 
-              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+              <Grid size={{ md: 12, lg: 6 }} sx={{ display: 'flex', width: '100%' }}>
                 <ChartCard
                   header={{
                     title: estuaryCardTitle,
@@ -949,7 +949,7 @@ function DashboardContent({
                 </ChartCard>
               </Grid>
 
-              <Grid size={{ xs: 12, md: 6 }} sx={{ display: 'flex', width: '100%' }}>
+              <Grid size={{ md: 12, lg: 6 }} sx={{ display: 'flex', width: '100%' }}>
                 <ChartCard
                   header={{
                     title: 'Upriver Predictions',
